@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layouts/main :: layout('Detalle de Sección', 'secciones', ~{::#seccion-detail-content})}">
+<head>
+    <title>Detalle de Sección</title>
+</head>
+<body>
+<div id="seccion-detail-content" class="max-w-4xl mx-auto space-y-6">
+
+    <!-- Encabezado con Botones de Acción -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-200">
+        <div>
+            <div class="flex items-center space-x-3">
+                <span class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-emerald-100 text-emerald-800 font-extrabold text-lg border border-emerald-300">
+                    <span th:text="${seccion.nombre}">A</span>
+                </span>
+                <h1 class="text-2xl font-bold text-slate-900 tracking-tight">
+                    Sección <span th:text="${seccion.nombre}">A</span> - <span th:text="${seccion.gradoNombre}">1° Primaria</span>
+                </h1>
+                <span th:if="${seccion.activo}" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
+                    Activo
+                </span>
+                <span th:unless="${seccion.activo}" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">
+                    Inactivo
+                </span>
+            </div>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1">
+                Ficha de aula, ocupación de matrículas y disponibilidad de vacantes
+            </p>
+        </div>
+        <div class="flex items-center space-x-2">
+            <a sec:authorize="hasAuthority('ACADEMICO_EDITAR')"
+               th:href="@{/academico/secciones/{id}/editar(id=${seccion.id})}"
+               class="inline-flex items-center px-3.5 py-2 border border-slate-300 shadow-sm text-xs font-semibold rounded-lg text-slate-700 bg-white hover:bg-slate-50 transition duration-150">
+                <svg class="w-4 h-4 mr-1.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                </svg>
+                <span>Editar</span>
+            </a>
+
+            <!-- Desactivar -->
+            <form th:if="${seccion.activo}"
+                  sec:authorize="hasAuthority('ACADEMICO_EDITAR')"
+                  method="post"
+                  th:action="@{/academico/secciones/{id}/desactivar(id=${seccion.id})}"
+                  class="inline"
+                  onsubmit="return confirm('¿Está seguro de desactivar esta sección? No afectará las matrículas históricas.');">
+                <button type="submit"
+                        class="inline-flex items-center px-3.5 py-2 border border-red-200 text-xs font-semibold rounded-lg text-red-700 bg-red-50 hover:bg-red-100 transition duration-150">
+                    Desactivar
+                </button>
+            </form>
+
+            <!-- Activar -->
+            <form th:unless="${seccion.activo}"
+                  sec:authorize="hasAuthority('ACADEMICO_EDITAR')"
+                  method="post"
+                  th:action="@{/academico/secciones/{id}/activar(id=${seccion.id})}"
+                  class="inline"
+                  onsubmit="return confirm('¿Está seguro de activar esta sección?');">
+                <button type="submit"
+                        class="inline-flex items-center px-3.5 py-2 border border-emerald-200 text-xs font-semibold rounded-lg text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition duration-150">
+                    Activar
+                </button>
+            </form>
+
+            <a th:href="@{/academico/secciones}"
+               class="inline-flex items-center px-3.5 py-2 border border-slate-300 text-xs font-semibold rounded-lg text-slate-700 bg-white hover:bg-slate-50 transition duration-150">
+                Regresar
+            </a>
+        </div>
+    </div>
+
+    <!-- Contenido y Estadísticas de Ocupación -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Ficha de la Sección -->
+        <div class="md:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
+            <h2 class="text-sm font-bold uppercase tracking-wider text-slate-700 border-b border-slate-100 pb-2">
+                Ficha de la Sección
+            </h2>
+
+            <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs sm:text-sm">
+                <div>
+                    <dt class="text-xs font-medium text-slate-500 uppercase tracking-wider">Nombre de Sección</dt>
+                    <dd class="mt-1 font-bold text-slate-900 text-base" th:text="${seccion.nombre}">A</dd>
+                </div>
+                <div>
+                    <dt class="text-xs font-medium text-slate-500 uppercase tracking-wider">Grado Académico</dt>
+                    <dd class="mt-1 font-semibold text-slate-800" th:text="${seccion.gradoNombre}">Primer Grado</dd>
+                </div>
+                <div>
+                    <dt class="text-xs font-medium text-slate-500 uppercase tracking-wider">Nivel</dt>
+                    <dd class="mt-1">
+                        <span th:if="${seccion.nivel != null}"
+                              class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold"
+                              th:classappend="${seccion.nivel.name() == 'INICIAL'} ? 'bg-amber-100 text-amber-800' :
+                                             (${seccion.nivel.name() == 'PRIMARIA'} ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800')"
+                              th:text="${seccion.nivel}">
+                            PRIMARIA
+                        </span>
+                        <span th:unless="${seccion.nivel != null}">-</span>
+                    </dd>
+                </div>
+                <div>
+                    <dt class="text-xs font-medium text-slate-500 uppercase tracking-wider">Turno</dt>
+                    <dd class="mt-1 font-medium text-slate-800" th:text="${seccion.turno.name() == 'MANANA' ? 'MAÑANA' : seccion.turno.name()}">
+                        MAÑANA
+                    </dd>
+                </div>
+                <div>
+                    <dt class="text-xs font-medium text-slate-500 uppercase tracking-wider">Capacidad Máxima</dt>
+                    <dd class="mt-1 font-bold text-slate-900 text-base" th:text="${seccion.capacidad}">30</dd>
+                </div>
+                <div>
+                    <dt class="text-xs font-medium text-slate-500 uppercase tracking-wider">Alumnos Matriculados</dt>
+                    <dd class="mt-1 font-semibold text-slate-800" th:text="${seccion.matriculados}">0</dd>
+                </div>
+            </dl>
+
+            <!-- Barra Visual de Ocupación -->
+            <div class="pt-4 border-t border-slate-100">
+                <div class="flex items-center justify-between text-xs font-medium text-slate-600 mb-1.5">
+                    <span>Nivel de Ocupación</span>
+                    <span th:text="${seccion.capacidad > 0 ? (seccion.matriculados * 100 / seccion.capacidad) + '%' : '0%'}">50%</span>
+                </div>
+                <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                    <div class="h-2.5 rounded-full bg-emerald-600"
+                         th:style="'width: ' + ${seccion.capacidad > 0 ? (seccion.matriculados * 100 / seccion.capacidad) : 0} + '%;'"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjetas de Vacantes y Auditoría -->
+        <div class="space-y-6">
+            <!-- Vacantes -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 text-center">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+                    Disponibilidad de Vacantes
+                </h3>
+                <div th:if="${seccion.vacantes > 0}" class="my-3">
+                    <span class="text-4xl font-extrabold text-emerald-700" th:text="${seccion.vacantes}">30</span>
+                    <p class="text-xs text-slate-500 mt-1 font-medium">vacantes libres disponibles</p>
+                </div>
+                <div th:unless="${seccion.vacantes > 0}" class="my-3">
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-bold bg-red-100 text-red-800 border border-red-200">
+                        SIN VACANTES
+                    </span>
+                    <p class="text-xs text-slate-500 mt-1">Capacidad máxima alcanzada</p>
+                </div>
+                <div class="pt-4 border-t border-slate-100 mt-4">
+                    <a th:href="@{/matriculas(seccionId=${seccion.id})}"
+                       sec:authorize="hasAuthority('MATRICULA_VER')"
+                       class="text-xs font-semibold text-emerald-700 hover:text-emerald-800 flex items-center justify-center">
+                        Ver alumnos matriculados &rarr;
+                    </a>
+                </div>
+            </div>
+
+            <!-- Auditoría -->
+            <div class="bg-slate-50 rounded-xl border border-slate-200 p-5 text-xs text-slate-500 space-y-2">
+                <h4 class="font-bold uppercase tracking-wider text-slate-700 text-[11px] mb-2">Auditoría</h4>
+                <div>
+                    <span class="font-semibold text-slate-600">Creado:</span>
+                    <span th:text="${#temporals.format(seccion.createdAt, 'dd/MM/yyyy HH:mm')}">-</span>
+                    <span th:if="${seccion.createdBy != null}" th:text="'por ' + ${seccion.createdBy}"></span>
+                </div>
+                <div>
+                    <span class="font-semibold text-slate-600">Última actualización:</span>
+                    <span th:text="${#temporals.format(seccion.updatedAt, 'dd/MM/yyyy HH:mm')}">-</span>
+                    <span th:if="${seccion.updatedBy != null}" th:text="'por ' + ${seccion.updatedBy}"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

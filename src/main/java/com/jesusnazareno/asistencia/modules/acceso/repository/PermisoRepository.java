@@ -1,0 +1,20 @@
+package com.jesusnazareno.asistencia.modules.acceso.repository;
+
+import com.jesusnazareno.asistencia.modules.acceso.domain.Permiso;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface PermisoRepository extends JpaRepository<Permiso, Long> {
+
+    Optional<Permiso> findByCodigo(String codigo);
+
+    boolean existsByCodigo(String codigo);
+
+    List<Permiso> findByModulo(String modulo);
+
+    List<Permiso> findByActivoTrue();
+}

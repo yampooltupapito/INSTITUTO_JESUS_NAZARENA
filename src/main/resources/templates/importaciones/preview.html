@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layouts/main :: layout('Vista Previa de Importación', 'importaciones', ~{::#importaciones-preview-content})}">
+<head>
+  <title>Vista Previa de Importación</title>
+</head>
+<body>
+<div id="importaciones-preview-content" class="space-y-6">
+
+  <!-- Encabezado con breadcrumb -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200">
+    <div>
+      <nav class="flex text-xs text-slate-500 mb-1" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center space-x-1">
+          <li><a th:href="@{/importaciones}" class="hover:text-emerald-700">Importaciones</a></li>
+          <li><span class="mx-1 text-slate-400">/</span></li>
+          <li>
+            <a th:if="${tipoImportacion == 'ESTUDIANTES'}" th:href="@{/importaciones/estudiantes}" class="hover:text-emerald-700">Estudiantes</a>
+            <a th:if="${tipoImportacion == 'MATRICULAS'}" th:href="@{/importaciones/matriculas}" class="hover:text-emerald-700">Matrículas</a>
+          </li>
+          <li><span class="mx-1 text-slate-400">/</span></li>
+          <li class="font-medium text-slate-800">Vista Previa</li>
+        </ol>
+      </nav>
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight">
+        Vista Previa: <span th:text="${tipoImportacion == 'ESTUDIANTES' ? 'Estudiantes' : 'Matrículas'}">Módulo</span>
+      </h1>
+      <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+        Archivo analizado: <span class="font-semibold text-slate-700" th:text="${resultado.nombreArchivo}">archivo.xlsx</span>.
+        Los registros han sido validados en memoria y aún <strong class="text-rose-600">no han sido guardados</strong> en la base de datos.
+      </p>
+    </div>
+
+    <!-- Botones de Acción Superior -->
+    <div class="flex items-center gap-3">
+      <a th:href="${tipoImportacion == 'ESTUDIANTES' ? '/importaciones/estudiantes' : '/importaciones/matriculas'}"
+         class="inline-flex items-center px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition shadow-xs">
+        Cancelar y Subir Otro
+      </a>
+      <!-- Formulario de confirmación si no hay errores -->
+      <form th:if="${resultado.esValidoParaImportar()}"
+            th:action="${tipoImportacion == 'ESTUDIANTES' ? '/importaciones/estudiantes/confirmar' : '/importaciones/matriculas/confirmar'}"
+            method="post" class="inline">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <input type="hidden" name="token" th:value="${resultado.token}"/>
+        <button type="submit" id="btn-confirmar-importacion"
+                class="inline-flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg shadow-sm transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+          Confirmar e Importar (<span th:text="${resultado.filasValidas}">0</span>) Registros
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Resumen de Métricas / Tarjetas -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+    <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+      <span class="text-xs font-medium text-slate-500 uppercase tracking-wider">Total Filas</span>
+      <p class="text-2xl font-bold text-slate-900 mt-1" th:text="${resultado.totalFilas}">0</p>
+    </div>
+    <div class="bg-white border border-emerald-200 rounded-xl p-4 shadow-xs">
+      <span class="text-xs font-medium text-emerald-700 uppercase tracking-wider">Válidas para Carga</span>
+      <p class="text-2xl font-bold text-emerald-700 mt-1" th:text="${resultado.filasValidas}">0</p>
+    </div>
+    <div class="bg-white border border-rose-200 rounded-xl p-4 shadow-xs">
+      <span class="text-xs font-medium text-rose-700 uppercase tracking-wider">Filas con Error</span>
+      <p class="text-2xl font-bold text-rose-700 mt-1" th:text="${resultado.filasConError}">0</p>
+    </div>
+    <div class="bg-white border border-amber-200 rounded-xl p-4 shadow-xs">
+      <span class="text-xs font-medium text-amber-700 uppercase tracking-wider">Ya Registradas</span>
+      <p class="text-2xl font-bold text-amber-700 mt-1" th:text="${resultado.filasExistentes}">0</p>
+    </div>
+  </div>
+
+  <!-- Alerta informativa de estado -->
+  <div th:if="${resultado.filasConError > 0 or resultado.tieneErroresGenerales()}"
+       class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-start gap-3">
+    <svg class="w-5 h-5 text-rose-600 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+    </svg>
+    <div>
+      <span class="font-bold">El archivo contiene errores que impiden la confirmación:</span>
+      <p class="text-xs text-rose-700 mt-1">
+        Para mantener la integridad de los datos educativos, el sistema aplica la política de <em>todo o nada</em>.
+        Por favor revise los errores señalados en la tabla inferior, corrija el archivo Excel y vuelva a subirlo.
+      </p>
+      <ul th:if="${resultado.tieneErroresGenerales()}" class="mt-2 list-disc list-inside text-xs">
+        <li th:each="err : ${resultado.erroresGenerales}" th:text="${err}">Error general</li>
+      </ul>
+    </div>
+  </div>
+
+  <div th:if="${resultado.esValidoParaImportar()}"
+       class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-start gap-3">
+    <svg class="w-5 h-5 text-emerald-600 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+    </svg>
+    <div>
+      <span class="font-bold">Archivo validado correctamente.</span>
+      <p class="text-xs text-emerald-700 mt-0.5">
+        Se identificaron <span class="font-semibold" th:text="${resultado.filasValidas}">0</span> registros listos para inserción.
+        Haga clic en el botón <strong>"Confirmar e Importar"</strong> para persistir de forma atómica en PostgreSQL.
+      </p>
+    </div>
+  </div>
+
+  <!-- Tabla de Detalle: Estudiantes -->
+  <div th:if="${tipoImportacion == 'ESTUDIANTES'}" class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+    <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+      <h3 class="text-sm font-bold text-slate-800">Detalle de Filas - Padrón de Estudiantes</h3>
+      <span class="text-xs text-slate-500" th:text="'Mostrando ' + ${#lists.size(resultado.filas)} + ' filas analizadas'">Filas</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-xs text-left text-slate-600">
+        <thead class="text-[11px] uppercase bg-slate-100 text-slate-700 border-b border-slate-200">
+          <tr>
+            <th class="px-3 py-2.5 text-center">Fila</th>
+            <th class="px-3 py-2.5 text-center">Estado</th>
+            <th class="px-3 py-2.5">Tipo Doc</th>
+            <th class="px-3 py-2.5">N° Documento</th>
+            <th class="px-3 py-2.5">Apellidos y Nombres</th>
+            <th class="px-3 py-2.5">F. Nacimiento</th>
+            <th class="px-3 py-2.5">Sexo</th>
+            <th class="px-3 py-2.5">Teléfono</th>
+            <th class="px-3 py-2.5">Correo</th>
+            <th class="px-3 py-2.5">Observaciones / Errores</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr th:each="fila : ${resultado.filas}"
+              th:classappend="${fila.estado.name() == 'ERROR' ? 'bg-rose-50/40' : (fila.estado.name() == 'YA_EXISTE' ? 'bg-amber-50/40' : 'hover:bg-slate-50')}">
+            <td class="px-3 py-2 font-mono text-center font-semibold text-slate-500" th:text="${fila.numeroFila}">1</td>
+            <td class="px-3 py-2 text-center whitespace-nowrap">
+              <span th:if="${fila.estado.name() == 'VALIDA'}"
+                    class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                VÁLIDA
+              </span>
+              <span th:if="${fila.estado.name() == 'ERROR'}"
+                    class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800">
+                ERROR
+              </span>
+              <span th:if="${fila.estado.name() == 'YA_EXISTE'}"
+                    class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800">
+                YA EXISTE
+              </span>
+            </td>
+            <td class="px-3 py-2" th:text="${fila.tipoDocumento != null ? fila.tipoDocumento.name() : (fila.tipoDocumentoRaw != null ? fila.tipoDocumentoRaw : '-')}">DNI</td>
+            <td class="px-3 py-2 font-mono font-medium text-slate-800" th:text="${fila.numeroDocumento}">12345678</td>
+            <td class="px-3 py-2 font-medium text-slate-900"
+                th:text="${(fila.apellidoPaterno != null ? fila.apellidoPaterno + ' ' : '') + (fila.apellidoMaterno != null ? fila.apellidoMaterno + ', ' : '') + (fila.nombres != null ? fila.nombres : '')}">
+              Perez Gomez, Juan
+            </td>
+            <td class="px-3 py-2 whitespace-nowrap" th:text="${fila.fechaNacimiento != null ? #temporals.format(fila.fechaNacimiento, 'dd/MM/yyyy') : (fila.fechaNacimientoRaw != null ? fila.fechaNacimientoRaw : '-')}">15/04/2012</td>
+            <td class="px-3 py-2" th:text="${fila.sexo != null ? fila.sexo.name() : (fila.sexoRaw != null ? fila.sexoRaw : '-')}">MASCULINO</td>
+            <td class="px-3 py-2 font-mono" th:text="${fila.telefono != null ? fila.telefono : '-'}">987654321</td>
+            <td class="px-3 py-2" th:text="${fila.correo != null ? fila.correo : '-'}">correo@colegio.edu.pe</td>
+            <td class="px-3 py-2">
+              <div th:if="${fila.tieneErrores()}" class="space-y-0.5">
+                <span th:each="err : ${fila.errores}" class="block text-rose-600 font-medium text-[11px]" th:text="'• ' + ${err}">Error</span>
+              </div>
+              <div th:if="${!fila.advertencias.isEmpty()}" class="space-y-0.5">
+                <span th:each="adv : ${fila.advertencias}" class="block text-amber-700 text-[11px]" th:text="'• ' + ${adv}">Advertencia</span>
+              </div>
+              <span th:if="${!fila.tieneErrores() and fila.advertencias.isEmpty()}" class="text-slate-400 text-[11px]">Correcto</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Tabla de Detalle: Matrículas -->
+  <div th:if="${tipoImportacion == 'MATRICULAS'}" class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+    <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+      <h3 class="text-sm font-bold text-slate-800">Detalle de Filas - Matrículas Escolares</h3>
+      <span class="text-xs text-slate-500" th:text="'Mostrando ' + ${#lists.size(resultado.filas)} + ' filas analizadas'">Filas</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-xs text-left text-slate-600">
+        <thead class="text-[11px] uppercase bg-slate-100 text-slate-700 border-b border-slate-200">
+          <tr>
+            <th class="px-3 py-2.5 text-center">Fila</th>
+            <th class="px-3 py-2.5 text-center">Estado</th>
+            <th class="px-3 py-2.5">Doc Estudiante</th>
+            <th class="px-3 py-2.5">Estudiante Verificado</th>
+            <th class="px-3 py-2.5 text-center">Año</th>
+            <th class="px-3 py-2.5">Nivel</th>
+            <th class="px-3 py-2.5 text-center">Grado</th>
+            <th class="px-3 py-2.5 text-center">Sección</th>
+            <th class="px-3 py-2.5">Código Matrícula</th>
+            <th class="px-3 py-2.5">Fecha</th>
+            <th class="px-3 py-2.5">Observaciones / Errores</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr th:each="fila : ${resultado.filas}"
+              th:classappend="${fila.estadoFila.name() == 'ERROR' ? 'bg-rose-50/40' : (fila.estadoFila.name() == 'YA_EXISTE' ? 'bg-amber-50/40' : 'hover:bg-slate-50')}">
+            <td class="px-3 py-2 font-mono text-center font-semibold text-slate-500" th:text="${fila.numeroFila}">1</td>
+            <td class="px-3 py-2 text-center whitespace-nowrap">
+              <span th:if="${fila.estadoFila.name() == 'VALIDA'}"
+                    class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                VÁLIDA
+              </span>
+              <span th:if="${fila.estadoFila.name() == 'ERROR'}"
+                    class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800">
+                ERROR
+              </span>
+              <span th:if="${fila.estadoFila.name() == 'YA_EXISTE'}"
+                    class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800">
+                YA REGISTRADA
+              </span>
+            </td>
+            <td class="px-3 py-2 font-mono font-medium text-slate-800" th:text="${fila.numeroDocumentoEstudiante}">12345678</td>
+            <td class="px-3 py-2 font-medium text-slate-900" th:text="${fila.nombreEstudiante != null ? fila.nombreEstudiante : '-'}">Perez, Juan</td>
+            <td class="px-3 py-2 font-mono text-center" th:text="${fila.anio != null ? fila.anio : fila.anioRaw}">2026</td>
+            <td class="px-3 py-2" th:text="${fila.nivel != null ? fila.nivel.name() : (fila.nivelRaw != null ? fila.nivelRaw : '-')}">SECUNDARIA</td>
+            <td class="px-3 py-2 text-center" th:text="${fila.grado != null ? fila.grado : '-'}">1°</td>
+            <td class="px-3 py-2 text-center font-semibold" th:text="${fila.seccion != null ? fila.seccion : '-'}">A</td>
+            <td class="px-3 py-2 font-mono" th:text="${fila.codigoMatricula != null ? fila.codigoMatricula : '(Auto)'}">MAT-2026-001</td>
+            <td class="px-3 py-2 whitespace-nowrap" th:text="${fila.fechaMatricula != null ? #temporals.format(fila.fechaMatricula, 'dd/MM/yyyy') : (fila.fechaMatriculaRaw != null ? fila.fechaMatriculaRaw : '-')}">01/03/2026</td>
+            <td class="px-3 py-2">
+              <div th:if="${fila.tieneErrores()}" class="space-y-0.5">
+                <span th:each="err : ${fila.errores}" class="block text-rose-600 font-medium text-[11px]" th:text="'• ' + ${err}">Error</span>
+              </div>
+              <div th:if="${!fila.advertencias.isEmpty()}" class="space-y-0.5">
+                <span th:each="adv : ${fila.advertencias}" class="block text-amber-700 text-[11px]" th:text="'• ' + ${adv}">Advertencia</span>
+              </div>
+              <span th:if="${!fila.tieneErrores() and fila.advertencias.isEmpty()}" class="text-slate-400 text-[11px]">Correcto</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Botones de Acción Inferior -->
+  <div class="flex items-center justify-between pt-4 border-t border-slate-200">
+    <a th:href="${tipoImportacion == 'ESTUDIANTES' ? '/importaciones/estudiantes' : '/importaciones/matriculas'}"
+       class="inline-flex items-center px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition shadow-xs">
+      Volver al Formulario
+    </a>
+    <form th:if="${resultado.esValidoParaImportar()}"
+          th:action="${tipoImportacion == 'ESTUDIANTES' ? '/importaciones/estudiantes/confirmar' : '/importaciones/matriculas/confirmar'}"
+          method="post" class="inline">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+      <input type="hidden" name="token" th:value="${resultado.token}"/>
+      <button type="submit"
+              class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg shadow-sm transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+        </svg>
+        Confirmar e Importar (<span th:text="${resultado.filasValidas}">0</span>) Registros en PostgreSQL
+      </button>
+    </form>
+  </div>
+
+</div>
+</body>
+</html>

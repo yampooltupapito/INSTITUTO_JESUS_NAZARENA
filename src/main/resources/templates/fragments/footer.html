@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+<footer th:fragment="footer" class="bg-white border-t border-slate-200 py-4 px-4 sm:px-6 lg:px-8 text-center text-xs text-slate-500">
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-2 max-w-7xl mx-auto">
+        <div class="flex items-center space-x-2">
+            <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span class="font-medium text-slate-700" th:text="#{app.nombre}">Institución Educativa Jesús Nazareno</span>
+            <span class="text-slate-400">|</span>
+            <span th:text="#{app.descripcion}">Sistema Web de Control de Asistencia</span>
+        </div>
+        <div class="text-slate-400 text-[11px]">
+            &copy; <span th:text="${#temporals.year(#temporals.createNow())}">2026</span> Todos los derechos reservados.
+        </div>
+    </div>
+</footer>
+</body>
+</html>

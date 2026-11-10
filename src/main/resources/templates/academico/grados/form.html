@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layouts/main :: layout(${pageTitle}, 'grados', ~{::#grado-form-content})}">
+<head>
+    <title th:text="${pageTitle}">Grado Académico</title>
+</head>
+<body>
+<div id="grado-form-content" class="max-w-2xl mx-auto space-y-6">
+
+    <!-- Encabezado -->
+    <div class="flex items-center justify-between pb-4 border-b border-slate-200">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900 tracking-tight" th:text="${pageTitle}">
+                Nuevo Grado
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1">
+                Configure el grado y su nivel correspondiente
+            </p>
+        </div>
+        <a th:href="@{/academico/grados}"
+           class="inline-flex items-center px-3 py-1.5 border border-slate-300 text-xs font-medium rounded-lg text-slate-700 bg-white hover:bg-slate-50">
+            Regresar
+        </a>
+    </div>
+
+    <!-- Formulario -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 sm:p-8">
+        <form th:action="${isEdit == true} ? @{/academico/grados/{id}(id=${gradoId})} : @{/academico/grados}"
+              th:object="${gradoRequest}"
+              method="post"
+              class="space-y-6">
+
+            <!-- Mensaje de error general si existe -->
+            <div th:if="${errorMessage}" class="p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs sm:text-sm">
+                <span th:text="${errorMessage}">Error</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <!-- Nivel Educativo -->
+                <div>
+                    <label for="nivel" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                        Nivel Educativo <span class="text-red-500">*</span>
+                    </label>
+                    <select id="nivel"
+                            th:field="*{nivel}"
+                            required
+                            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition"
+                            th:classappend="${#fields.hasErrors('nivel')} ? 'border-red-500 bg-red-50' : ''">
+                        <option value="">-- Seleccione Nivel --</option>
+                        <option th:each="n : ${niveles}"
+                                th:value="${n}"
+                                th:text="${n}">
+                            PRIMARIA
+                        </option>
+                    </select>
+                    <p th:if="${#fields.hasErrors('nivel')}" th:errors="*{nivel}" class="text-xs text-red-600 mt-1 font-medium"></p>
+                </div>
+
+                <!-- Número de Grado -->
+                <div>
+                    <label for="numero" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                        Número de Grado <span class="text-red-500">*</span>
+                    </label>
+                    <input type="number"
+                           id="numero"
+                           th:field="*{numero}"
+                           min="1"
+                           max="10"
+                           placeholder="Ej. 1"
+                           required
+                           class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition"
+                           th:classappend="${#fields.hasErrors('numero')} ? 'border-red-500 bg-red-50' : ''">
+                    <p th:if="${#fields.hasErrors('numero')}" th:errors="*{numero}" class="text-xs text-red-600 mt-1 font-medium"></p>
+                </div>
+
+                <!-- Nombre del Grado -->
+                <div class="sm:col-span-2">
+                    <label for="nombre" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                        Nombre Oficial del Grado <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text"
+                           id="nombre"
+                           th:field="*{nombre}"
+                           placeholder="Ej. Primer Grado de Primaria"
+                           required
+                           maxlength="100"
+                           class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition"
+                           th:classappend="${#fields.hasErrors('nombre')} ? 'border-red-500 bg-red-50' : ''">
+                    <p th:if="${#fields.hasErrors('nombre')}" th:errors="*{nombre}" class="text-xs text-red-600 mt-1 font-medium"></p>
+                </div>
+
+                <!-- Descripción -->
+                <div class="sm:col-span-2">
+                    <label for="descripcion" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                        Descripción o Notas Adicionales
+                    </label>
+                    <textarea id="descripcion"
+                              th:field="*{descripcion}"
+                              rows="3"
+                              placeholder="Opcional. Información adicional sobre el grado..."
+                              maxlength="255"
+                              class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition"
+                              th:classappend="${#fields.hasErrors('descripcion')} ? 'border-red-500 bg-red-50' : ''"></textarea>
+                    <p th:if="${#fields.hasErrors('descripcion')}" th:errors="*{descripcion}" class="text-xs text-red-600 mt-1 font-medium"></p>
+                </div>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="flex items-center justify-end space-x-3 pt-6 border-t border-slate-100">
+                <a th:href="@{/academico/grados}"
+                   class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-medium transition duration-150">
+                    Cancelar
+                </a>
+                <button type="submit"
+                        class="px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-sm font-semibold shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition duration-150">
+                    <span th:text="${isEdit == true} ? 'Guardar Cambios' : 'Registrar Grado'">Guardar</span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+</div>
+</body>
+</html>

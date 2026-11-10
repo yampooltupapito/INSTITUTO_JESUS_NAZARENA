@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layouts/main :: layout(${pageTitle}, 'secciones', ~{::#seccion-form-content})}">
+<head>
+    <title th:text="${pageTitle}">Sección Escolar</title>
+</head>
+<body>
+<div id="seccion-form-content" class="max-w-2xl mx-auto space-y-6">
+
+    <!-- Encabezado -->
+    <div class="flex items-center justify-between pb-4 border-b border-slate-200">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900 tracking-tight" th:text="${pageTitle}">
+                Nueva Sección
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1">
+                Configure la sección, grado, turno y capacidad de estudiantes
+            </p>
+        </div>
+        <a th:href="@{/academico/secciones}"
+           class="inline-flex items-center px-3 py-1.5 border border-slate-300 text-xs font-medium rounded-lg text-slate-700 bg-white hover:bg-slate-50">
+            Regresar
+        </a>
+    </div>
+
+    <!-- Formulario -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 sm:p-8">
+        <form th:action="${isEdit == true} ? @{/academico/secciones/{id}(id=${seccionId})} : @{/academico/secciones}"
+              th:object="${seccionRequest}"
+              method="post"
+              class="space-y-6">
+
+            <!-- Mensaje de error general si existe -->
+            <div th:if="${errorMessage}" class="p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs sm:text-sm">
+                <span th:text="${errorMessage}">Error</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <!-- Grado -->
+                <div class="sm:col-span-2">
+                    <label for="gradoId" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                        Grado Académico <span class="text-red-500">*</span>
+                    </label>
+                    <select id="gradoId"
+                            th:field="*{gradoId}"
+                            required
+                            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition"
+                            th:classappend="${#fields.hasErrors('gradoId')} ? 'border-red-500 bg-red-50' : ''">
+                        <option value="">-- Seleccione Grado --</option>
+                        <option th:each="g : ${grados}"
+                                th:value="${g.id}"
+                                th:text="${g.nombre + ' (' + g.nivel + ')'}">
+                            1° Primaria
+                        </option>
+                    </select>
+                    <p th:if="${#fields.hasErrors('gradoId')}" th:errors="*{gradoId}" class="text-xs text-red-600 mt-1 font-medium"></p>
+                </div>
+
+                <!-- Nombre de la Sección -->
+                <div>
+                    <label for="nombre" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                        Nombre de Sección <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text"
+                           id="nombre"
+                           th:field="*{nombre}"
+                           placeholder="Ej. A, B, C o Única"
+                           required
+                           maxlength="50"
+                           class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition"
+                           th:classappend="${#fields.hasErrors('nombre')} ? 'border-red-500 bg-red-50' : ''">
+                    <p th:if="${#fields.hasErrors('nombre')}" th:errors="*{nombre}" class="text-xs text-red-600 mt-1 font-medium"></p>
+                </div>
+
+                <!-- Turno -->
+                <div>
+                    <label for="turno" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                        Turno <span class="text-red-500">*</span>
+                    </label>
+                    <select id="turno"
+                            th:field="*{turno}"
+                            required
+                            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition"
+                            th:classappend="${#fields.hasErrors('turno')} ? 'border-red-500 bg-red-50' : ''">
+                        <option value="">-- Seleccione Turno --</option>
+                        <option th:each="t : ${turnos}"
+                                th:value="${t}"
+                                th:text="${t.name() == 'MANANA' ? 'MAÑANA' : t.name()}">
+                            MAÑANA
+                        </option>
+                    </select>
+                    <p th:if="${#fields.hasErrors('turno')}" th:errors="*{turno}" class="text-xs text-red-600 mt-1 font-medium"></p>
+                </div>
+
+                <!-- Capacidad -->
+                <div class="sm:col-span-2">
+                    <label for="capacidad" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                        Capacidad Máxima de Alumnos <span class="text-red-500">*</span>
+                    </label>
+                    <input type="number"
+                           id="capacidad"
+                           th:field="*{capacidad}"
+                           min="1"
+                           max="100"
+                           placeholder="Ej. 30"
+                           required
+                           class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition"
+                           th:classappend="${#fields.hasErrors('capacidad')} ? 'border-red-500 bg-red-50' : ''">
+                    <p class="text-[11px] text-slate-500 mt-1">
+                        La capacidad debe ser mayor a cero y no puede ser reducida por debajo del número actual de matriculados.
+                    </p>
+                    <p th:if="${#fields.hasErrors('capacidad')}" th:errors="*{capacidad}" class="text-xs text-red-600 mt-1 font-medium"></p>
+                </div>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="flex items-center justify-end space-x-3 pt-6 border-t border-slate-100">
+                <a th:href="@{/academico/secciones}"
+                   class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-medium transition duration-150">
+                    Cancelar
+                </a>
+                <button type="submit"
+                        class="px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-sm font-semibold shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition duration-150">
+                    <span th:text="${isEdit == true} ? 'Guardar Cambios' : 'Registrar Sección'">Guardar</span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+</div>
+</body>
+</html>

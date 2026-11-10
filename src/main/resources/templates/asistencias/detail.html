@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layouts/main :: layout('Detalle de Asistencia', 'asistencias', ~{::#asistencias-detail-content})}">
+<head><title>Detalle de Asistencia</title></head>
+<body>
+<div id="asistencias-detail-content" class="space-y-6">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Detalle de Asistencia</h1>
+      <p class="text-sm text-slate-500">Información completa del registro de asistencia.</p>
+    </div>
+    <div class="flex gap-2">
+      <a th:href="@{/justificaciones/nueva(asistenciaId=${asistencia.id})}"
+         sec:authorize="hasAuthority('JUSTIFICACION_CREAR')"
+         th:if="${(asistencia.estado.name() == 'AUSENTE' or asistencia.estado.name() == 'TARDANZA') and justificacion == null}"
+         id="btn-justificar-detail"
+         class="inline-flex items-center px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition shadow-sm">
+        Justificar
+      </a>
+      <a th:href="@{/asistencias/{id}/editar(id=${asistencia.id})}"
+         sec:authorize="hasAuthority('ASISTENCIA_EDITAR')"
+         th:if="${asistencia.estado.name() != 'JUSTIFICADO'}"
+         id="btn-editar-detail"
+         class="inline-flex items-center px-4 py-2 text-sm font-semibold text-white bg-amber-600 rounded-lg hover:bg-amber-700 transition">
+        Editar
+      </a>
+      <a th:href="@{/asistencias}" class="inline-flex items-center text-sm text-slate-600 hover:text-slate-900 px-4 py-2">
+        ← Volver
+      </a>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Datos principales -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
+      <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wide border-b border-slate-100 pb-2">Datos del Registro</h2>
+
+      <div class="flex justify-between items-start py-2 border-b border-slate-50">
+        <span class="text-xs font-semibold text-slate-500">Estado</span>
+        <span th:classappend="${asistencia.estado.name() == 'PRESENTE'} ? 'bg-emerald-100 text-emerald-800' :
+                              (${asistencia.estado.name() == 'TARDANZA'} ? 'bg-amber-100 text-amber-800' :
+                              (${asistencia.estado.name() == 'AUSENTE'} ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'))"
+              class="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold"
+              th:text="${asistencia.estado.name()}"></span>
+      </div>
+      <div class="flex justify-between py-2 border-b border-slate-50">
+        <span class="text-xs font-semibold text-slate-500">Fecha</span>
+        <span class="text-sm text-slate-800" th:text="${#temporals.format(asistencia.fecha,'dd/MM/yyyy')}"></span>
+      </div>
+      <div class="flex justify-between py-2 border-b border-slate-50">
+        <span class="text-xs font-semibold text-slate-500">Hora Ingreso</span>
+        <span class="text-sm text-slate-800" th:text="${asistencia.horaIngreso != null ? asistencia.horaIngreso : '—'}"></span>
+      </div>
+      <div class="flex justify-between py-2 border-b border-slate-50">
+        <span class="text-xs font-semibold text-slate-500">Hora Salida</span>
+        <span class="text-sm text-slate-800" th:text="${asistencia.horaSalida != null ? asistencia.horaSalida : '—'}"></span>
+      </div>
+      <div class="py-2">
+        <span class="text-xs font-semibold text-slate-500 block mb-1">Observación</span>
+        <span class="text-sm text-slate-700" th:text="${asistencia.observacion != null ? asistencia.observacion : '—'}"></span>
+      </div>
+    </div>
+
+    <!-- Datos del estudiante y contexto -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
+      <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wide border-b border-slate-100 pb-2">Estudiante y Contexto</h2>
+      <div class="flex justify-between py-2 border-b border-slate-50">
+        <span class="text-xs font-semibold text-slate-500">Estudiante</span>
+        <span class="text-sm text-slate-800" th:text="${asistencia.estudianteNombreCompleto}"></span>
+      </div>
+      <div class="flex justify-between py-2 border-b border-slate-50">
+        <span class="text-xs font-semibold text-slate-500">DNI</span>
+        <span class="text-sm text-slate-800" th:text="${asistencia.estudianteNumeroDocumento}"></span>
+      </div>
+      <div class="flex justify-between py-2 border-b border-slate-50">
+        <span class="text-xs font-semibold text-slate-500">Grado</span>
+        <span class="text-sm text-slate-800" th:text="${asistencia.gradoNombre}"></span>
+      </div>
+      <div class="flex justify-between py-2 border-b border-slate-50">
+        <span class="text-xs font-semibold text-slate-500">Sección</span>
+        <span class="text-sm text-slate-800" th:text="${asistencia.seccionNombre}"></span>
+      </div>
+      <div class="flex justify-between py-2 border-b border-slate-50">
+        <span class="text-xs font-semibold text-slate-500">ID Matrícula</span>
+        <span class="text-sm text-slate-800" th:text="${asistencia.matriculaId}"></span>
+      </div>
+    </div>
+
+    <!-- Auditoría -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-3 lg:col-span-2">
+      <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wide border-b border-slate-100 pb-2">Auditoría</h2>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div>
+          <p class="text-xs font-semibold text-slate-500">Registrado por</p>
+          <p class="text-sm text-slate-800" th:text="${asistencia.registradoPor}"></p>
+        </div>
+        <div>
+          <p class="text-xs font-semibold text-slate-500">Creado</p>
+          <p class="text-sm text-slate-800" th:text="${asistencia.createdAt != null ? #temporals.format(asistencia.createdAt,'dd/MM/yyyy HH:mm') : '—'}"></p>
+        </div>
+        <div>
+          <p class="text-xs font-semibold text-slate-500">Última modificación</p>
+          <p class="text-sm text-slate-800" th:text="${asistencia.updatedAt != null ? #temporals.format(asistencia.updatedAt,'dd/MM/yyyy HH:mm') : '—'}"></p>
+        </div>
+        <div>
+          <p class="text-xs font-semibold text-slate-500">ID Registro</p>
+          <p class="text-sm text-slate-800 font-mono" th:text="${asistencia.id}"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Justificación Asociada -->
+    <div th:if="${justificacion != null}" class="bg-white rounded-xl border border-blue-200 shadow-sm p-6 space-y-4 lg:col-span-2">
+      <div class="flex items-center justify-between border-b border-blue-100 pb-3">
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+          <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wide">Justificación Asociada</h2>
+        </div>
+        <span th:classappend="${justificacion.estado.name() == 'PENDIENTE'} ? 'bg-amber-100 text-amber-800 border-amber-300' :
+                              (${justificacion.estado.name() == 'APROBADA'} ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-red-100 text-red-800 border-red-300')"
+              class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border"
+              th:text="${justificacion.estado.name()}"></span>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+        <div>
+          <span class="text-xs font-semibold text-slate-500 block">Motivo</span>
+          <span class="font-medium text-slate-800" th:text="${justificacion.motivo}"></span>
+        </div>
+        <div>
+          <span class="text-xs font-semibold text-slate-500 block">Fecha Solicitud</span>
+          <span class="text-slate-700" th:text="${#temporals.format(justificacion.fechaSolicitud, 'dd/MM/yyyy')}"></span>
+        </div>
+        <div>
+          <span class="text-xs font-semibold text-slate-500 block">Revisor</span>
+          <span class="text-slate-700" th:text="${justificacion.revisadoPorNombre != null ? justificacion.revisadoPorNombre : (justificacion.revisadoPorUsername != null ? justificacion.revisadoPorUsername : 'Pendiente')}"></span>
+        </div>
+        <div class="md:col-span-2" th:if="${justificacion.descripcion != null and !justificacion.descripcion.isBlank()}">
+          <span class="text-xs font-semibold text-slate-500 block">Descripción</span>
+          <p class="text-slate-600 text-xs" th:text="${justificacion.descripcion}"></p>
+        </div>
+        <div th:if="${justificacion.observacionRevision != null and !justificacion.observacionRevision.isBlank()}">
+          <span class="text-xs font-semibold text-slate-500 block">Obs. Revisión</span>
+          <p class="text-slate-600 text-xs" th:text="${justificacion.observacionRevision}"></p>
+        </div>
+      </div>
+      <div class="pt-2 flex justify-end">
+        <a th:href="@{/justificaciones/{id}(id=${justificacion.id})}"
+           sec:authorize="hasAuthority('JUSTIFICACION_VER')"
+           class="inline-flex items-center text-xs font-semibold text-blue-600 hover:text-blue-800">
+          Ver detalle completo de justificación →
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

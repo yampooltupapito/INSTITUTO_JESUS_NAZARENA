@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layouts/main :: layout('Nueva Justificación', 'justificaciones', ~{::#justificacion-form-content})}">
+<head>
+  <title>Nueva Justificación</title>
+</head>
+<body>
+<div id="justificacion-form-content" class="max-w-4xl mx-auto space-y-6">
+
+  <!-- Encabezado -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight" th:text="#{justificacion.titulo.nueva}">Nueva Justificación</h1>
+      <p class="text-sm text-slate-500">Registre una solicitud formal de justificación para la inasistencia o tardanza del estudiante.</p>
+    </div>
+    <div>
+      <a th:href="@{/asistencias/{id}(id=${form.asistenciaId != null ? form.asistenciaId : (asistencia != null ? asistencia.id : '')})}"
+         class="inline-flex items-center text-sm text-slate-600 hover:text-slate-900 px-4 py-2">
+        ← Volver a Asistencia
+      </a>
+    </div>
+  </div>
+
+  <!-- Información de la Asistencia (Informativa, no editable) -->
+  <div th:if="${asistencia != null}" class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
+    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+      <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wide">Contexto Académico y Asistencia</h2>
+      <span th:classappend="${asistencia.estado.name() == 'TARDANZA'} ? 'bg-amber-100 text-amber-800 border-amber-300' : 'bg-red-100 text-red-800 border-red-300'"
+            class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border"
+            th:text="${asistencia.estado.name()}"></span>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+      <div>
+        <span class="text-xs font-semibold text-slate-500 block">Estudiante</span>
+        <span class="font-bold text-slate-800" th:text="${asistencia.estudianteNombreCompleto}"></span>
+      </div>
+      <div>
+        <span class="text-xs font-semibold text-slate-500 block">Documento de Identidad</span>
+        <span class="text-slate-700 font-mono" th:text="${asistencia.estudianteNumeroDocumento}"></span>
+      </div>
+      <div>
+        <span class="text-xs font-semibold text-slate-500 block">Fecha de Asistencia</span>
+        <span class="text-slate-700 font-semibold" th:text="${#temporals.format(asistencia.fecha,'dd/MM/yyyy')}"></span>
+      </div>
+      <div>
+        <span class="text-xs font-semibold text-slate-500 block">Grado y Sección</span>
+        <span class="text-slate-700" th:text="${asistencia.gradoNombre + ' - ' + asistencia.seccionNombre}"></span>
+      </div>
+      <div>
+        <span class="text-xs font-semibold text-slate-500 block">Hora Registrada</span>
+        <span class="text-slate-700" th:text="${asistencia.horaIngreso != null ? asistencia.horaIngreso : 'Sin ingreso'}"></span>
+      </div>
+      <div>
+        <span class="text-xs font-semibold text-slate-500 block">ID Asistencia</span>
+        <span class="text-slate-500 font-mono text-xs" th:text="${asistencia.id}"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Formulario de Registro -->
+  <form th:action="@{/justificaciones}" th:object="${form}" method="post" class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-6">
+    <!-- Token CSRF explícito -->
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+    <!-- ID de Asistencia oculto -->
+    <input type="hidden" th:field="*{asistenciaId}" id="asistenciaId" />
+    <p th:if="${#fields.hasErrors('asistenciaId')}" th:errors="*{asistenciaId}" class="text-xs text-red-600 font-medium"></p>
+
+    <!-- Campo: Motivo -->
+    <div>
+      <label for="motivo" class="block text-sm font-semibold text-slate-700 mb-1">
+        Motivo de la Justificación <span class="text-red-500">*</span>
+      </label>
+      <input type="text" id="motivo" th:field="*{motivo}" maxlength="100" required
+             placeholder="Ej. Cita médica, motivos de salud, duelo familiar..."
+             th:classappend="${#fields.hasErrors('motivo')} ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-300'"
+             class="w-full px-3.5 py-2.5 text-sm border rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition">
+      <p th:if="${#fields.hasErrors('motivo')}" th:errors="*{motivo}" class="text-xs text-red-600 font-medium mt-1"></p>
+      <p class="text-[11px] text-slate-400 mt-1">Máximo 100 caracteres. Indique claramente la causal de la inasistencia.</p>
+    </div>
+
+    <!-- Campo: Descripción detallada -->
+    <div>
+      <label for="descripcion" class="block text-sm font-semibold text-slate-700 mb-1">
+        Descripción / Sustento Detallado
+      </label>
+      <textarea id="descripcion" th:field="*{descripcion}" rows="4" maxlength="1000"
+                placeholder="Detalle los hechos o consideraciones pertinentes sobre la solicitud..."
+                th:classappend="${#fields.hasErrors('descripcion')} ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-300'"
+                class="w-full px-3.5 py-2.5 text-sm border rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition"></textarea>
+      <p th:if="${#fields.hasErrors('descripcion')}" th:errors="*{descripcion}" class="text-xs text-red-600 font-medium mt-1"></p>
+      <p class="text-[11px] text-slate-400 mt-1">Opcional. Máximo 1000 caracteres.</p>
+    </div>
+
+    <!-- Nota Informativa -->
+    <div class="p-4 bg-amber-50 border-l-4 border-amber-500 rounded-r-lg text-xs text-amber-800 space-y-1">
+      <p class="font-bold">Aviso importante sobre el flujo de justificación:</p>
+      <p>La solicitud quedará registrada en estado <span class="font-bold">PENDIENTE</span>. Solo el personal directivo o auxiliar con autorización podrá revisarla y aprobarla o rechazarla formalmente.</p>
+    </div>
+
+    <!-- Botones de Acción -->
+    <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
+      <a th:href="@{/asistencias/{id}(id=${form.asistenciaId != null ? form.asistenciaId : (asistencia != null ? asistencia.id : '')})}"
+         class="px-5 py-2.5 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition">
+        Cancelar
+      </a>
+      <button type="submit" id="btn-guardar-justificacion"
+              class="px-5 py-2.5 text-sm font-semibold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg shadow-sm transition">
+        Registrar Justificación
+      </button>
+    </div>
+  </form>
+</div>
+</body>
+</html>

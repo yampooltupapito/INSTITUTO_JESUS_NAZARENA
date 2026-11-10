@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layouts/main :: layout('Detalle de Justificación', 'justificaciones', ~{::#justificacion-detail-content})}">
+<head>
+  <title>Detalle de Justificación</title>
+</head>
+<body>
+<div id="justificacion-detail-content" class="max-w-4xl mx-auto space-y-6">
+
+  <!-- Encabezado -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight" th:text="#{justificacion.titulo.detalle}">Detalle de Justificación</h1>
+      <p class="text-sm text-slate-500">Expediente y trazabilidad de la solicitud de justificación.</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <!-- Botón Revisar disponible si está PENDIENTE y con permiso -->
+      <a th:href="@{/justificaciones/{id}/revisar(id=${justificacion.id})}"
+         sec:authorize="hasAuthority('JUSTIFICACION_REVISAR')"
+         th:if="${justificacion.estado.name() == 'PENDIENTE'}"
+         id="btn-revisar-detail"
+         class="inline-flex items-center px-4 py-2 text-sm font-semibold text-white bg-amber-600 rounded-lg hover:bg-amber-700 shadow-sm transition">
+        Revisar Solicitud
+      </a>
+      <a th:href="@{/justificaciones}"
+         class="inline-flex items-center text-sm text-slate-600 hover:text-slate-900 px-4 py-2">
+        ← Volver al Listado
+      </a>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+    <!-- Tarjeta: Estado y Datos de la Solicitud -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wide">Estado de la Solicitud</h2>
+        <span th:classappend="${justificacion.estado.name() == 'PENDIENTE'} ? 'bg-amber-100 text-amber-800 border-amber-300' :
+                              (${justificacion.estado.name() == 'APROBADA'} ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-red-100 text-red-800 border-red-300')"
+              class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border"
+              th:text="${justificacion.estado.name()}"></span>
+      </div>
+
+      <div class="space-y-3 text-sm">
+        <div class="flex justify-between py-1 border-b border-slate-50">
+          <span class="text-xs font-semibold text-slate-500">Fecha de Solicitud</span>
+          <span class="text-slate-800 font-medium" th:text="${#temporals.format(justificacion.fechaSolicitud,'dd/MM/yyyy')}"></span>
+        </div>
+        <div class="py-1 border-b border-slate-50">
+          <span class="text-xs font-semibold text-slate-500 block mb-1">Motivo</span>
+          <span class="text-slate-800 font-semibold" th:text="${justificacion.motivo}"></span>
+        </div>
+        <div class="py-1">
+          <span class="text-xs font-semibold text-slate-500 block mb-1">Descripción / Sustento</span>
+          <p class="text-slate-700 text-xs whitespace-pre-line bg-slate-50 p-3 rounded-lg border border-slate-100"
+             th:text="${justificacion.descripcion != null and !justificacion.descripcion.isBlank() ? justificacion.descripcion : 'Sin descripción adicional adjuntada.'}"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tarjeta: Estudiante y Asistencia Justificada -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wide">Estudiante y Asistencia</h2>
+        <a th:href="@{/asistencias/{id}(id=${justificacion.asistenciaId})}"
+           sec:authorize="hasAuthority('ASISTENCIA_VER')"
+           class="text-xs text-blue-600 hover:text-blue-800 font-semibold">
+          Ver Asistencia →
+        </a>
+      </div>
+
+      <div class="space-y-3 text-sm">
+        <div class="flex justify-between py-1 border-b border-slate-50">
+          <span class="text-xs font-semibold text-slate-500">Estudiante</span>
+          <span class="text-slate-800 font-bold" th:text="${justificacion.estudianteNombreCompleto}"></span>
+        </div>
+        <div class="flex justify-between py-1 border-b border-slate-50">
+          <span class="text-xs font-semibold text-slate-500">Documento</span>
+          <span class="text-slate-800 font-mono" th:text="${justificacion.estudianteNumeroDocumento != null ? justificacion.estudianteNumeroDocumento : '—'}"></span>
+        </div>
+        <div class="flex justify-between py-1 border-b border-slate-50">
+          <span class="text-xs font-semibold text-slate-500">Grado y Sección</span>
+          <span class="text-slate-800" th:text="${(justificacion.gradoNombre != null ? justificacion.gradoNombre : '') + ' - ' + (justificacion.seccionNombre != null ? justificacion.seccionNombre : '')}"></span>
+        </div>
+        <div class="flex justify-between py-1 border-b border-slate-50">
+          <span class="text-xs font-semibold text-slate-500">Fecha de Asistencia</span>
+          <span class="text-slate-800 font-semibold" th:text="${justificacion.asistenciaFecha != null ? #temporals.format(justificacion.asistenciaFecha,'dd/MM/yyyy') : '—'}"></span>
+        </div>
+        <div class="flex justify-between py-1">
+          <span class="text-xs font-semibold text-slate-500">Estado Actual de Asistencia</span>
+          <span th:if="${justificacion.asistenciaEstado != null}"
+                th:classappend="${justificacion.asistenciaEstado.name() == 'PRESENTE'} ? 'bg-emerald-100 text-emerald-800' :
+                                (${justificacion.asistenciaEstado.name() == 'TARDANZA'} ? 'bg-amber-100 text-amber-800' :
+                                (${justificacion.asistenciaEstado.name() == 'AUSENTE'} ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'))"
+                class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-bold"
+                th:text="${justificacion.asistenciaEstado.name()}"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tarjeta: Resolución de la Revisión -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4 md:col-span-2">
+      <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wide border-b border-slate-100 pb-3">Resolución y Dictamen de Revisión</h2>
+
+      <div th:if="${justificacion.estado.name() == 'PENDIENTE'}" class="p-4 bg-amber-50 rounded-lg border border-amber-200 text-amber-800 text-sm">
+        <p class="font-semibold">Esta justificación aún no ha sido revisada.</p>
+        <p class="text-xs text-amber-700 mt-1">El personal directivo o auxiliar con permisos puede dictaminar su aprobación o rechazo mediante la opción "Revisar Solicitud".</p>
+      </div>
+
+      <div th:unless="${justificacion.estado.name() == 'PENDIENTE'}" class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+        <div>
+          <span class="text-xs font-semibold text-slate-500 block">Personal Revisor</span>
+          <span class="text-slate-800 font-medium"
+                th:text="${justificacion.revisadoPorNombre != null ? justificacion.revisadoPorNombre : (justificacion.revisadoPorUsername != null ? justificacion.revisadoPorUsername : '—')}"></span>
+        </div>
+        <div>
+          <span class="text-xs font-semibold text-slate-500 block">Fecha y Hora de Revisión</span>
+          <span class="text-slate-800" th:text="${justificacion.fechaRevision != null ? #temporals.format(justificacion.fechaRevision,'dd/MM/yyyy HH:mm') : '—'}"></span>
+        </div>
+        <div class="sm:col-span-3">
+          <span class="text-xs font-semibold text-slate-500 block mb-1">Observación del Revisor</span>
+          <p class="text-slate-700 text-xs bg-slate-50 p-3 rounded-lg border border-slate-100 whitespace-pre-line"
+             th:text="${justificacion.observacionRevision != null and !justificacion.observacionRevision.isBlank() ? justificacion.observacionRevision : 'Sin observaciones registradas por el revisor.'}"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tarjeta: Auditoría Básica -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-3 md:col-span-2">
+      <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wide border-b border-slate-100 pb-2">Auditoría del Sistema</h2>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+        <div>
+          <p class="font-semibold text-slate-500">Creado por</p>
+          <p class="text-slate-800 font-medium" th:text="${justificacion.createdBy != null ? justificacion.createdBy : '—'}"></p>
+        </div>
+        <div>
+          <p class="font-semibold text-slate-500">Fecha de Creación</p>
+          <p class="text-slate-800" th:text="${justificacion.createdAt != null ? #temporals.format(justificacion.createdAt,'dd/MM/yyyy HH:mm') : '—'}"></p>
+        </div>
+        <div>
+          <p class="font-semibold text-slate-500">Última Modificación por</p>
+          <p class="text-slate-800 font-medium" th:text="${justificacion.updatedBy != null ? justificacion.updatedBy : '—'}"></p>
+        </div>
+        <div>
+          <p class="font-semibold text-slate-500">Fecha de Modificación</p>
+          <p class="text-slate-800" th:text="${justificacion.updatedAt != null ? #temporals.format(justificacion.updatedAt,'dd/MM/yyyy HH:mm') : '—'}"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

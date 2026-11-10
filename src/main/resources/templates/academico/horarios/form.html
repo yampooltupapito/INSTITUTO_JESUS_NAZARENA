@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layouts/main :: layout(${pageTitle}, 'horarios', ~{::#horario-form-content})}">
+<head>
+    <title th:text="${pageTitle}">Horario de Asistencia</title>
+</head>
+<body>
+<div id="horario-form-content" class="max-w-3xl mx-auto space-y-6">
+
+    <!-- Encabezado -->
+    <div class="flex items-center justify-between pb-4 border-b border-slate-200">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900 tracking-tight" th:text="${pageTitle}">
+                Nuevo Horario de Asistencia
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1">
+                Configure las horas de entrada, salida, tolerancia y vigencia aplicable
+            </p>
+        </div>
+        <a th:href="@{/academico/horarios}"
+           class="inline-flex items-center px-3 py-1.5 border border-slate-300 text-xs font-medium rounded-lg text-slate-700 bg-white hover:bg-slate-50">
+            Regresar
+        </a>
+    </div>
+
+    <!-- Formulario -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 sm:p-8">
+        <form th:action="${isEdit == true} ? @{/academico/horarios/{id}(id=${horarioId})} : @{/academico/horarios}"
+              th:object="${horarioRequest}"
+              method="post"
+              class="space-y-6">
+
+            <!-- Mensaje de error general si existe -->
+            <div th:if="${errorMessage}" class="p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs sm:text-sm">
+                <span th:text="${errorMessage}">Error</span>
+            </div>
+
+            <!-- Bloque 1: Alcance Académico -->
+            <div class="space-y-4">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 border-b border-slate-100 pb-1">
+                    1. Alcance y Contexto Académico
+                </h3>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Año Escolar -->
+                    <div>
+                        <label for="anioEscolarId" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                            Año Escolar <span class="text-red-500">*</span>
+                        </label>
+                        <select id="anioEscolarId"
+                                th:field="*{anioEscolarId}"
+                                required
+                                class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition"
+                                th:classappend="${#fields.hasErrors('anioEscolarId')} ? 'border-red-500 bg-red-50' : ''">
+                            <option value="">-- Seleccione Año --</option>
+                            <option th:each="a : ${aniosEscolares}"
+                                    th:value="${a.id}"
+                                    th:text="${a.anio + ' - ' + a.nombre}">
+                                2026
+                            </option>
+                        </select>
+                        <p th:if="${#fields.hasErrors('anioEscolarId')}" th:errors="*{anioEscolarId}" class="text-xs text-red-600 mt-1 font-medium"></p>
+                    </div>
+
+                    <!-- Turno -->
+                    <div>
+                        <label for="turno" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                            Turno <span class="text-red-500">*</span>
+                        </label>
+                        <select id="turno"
+                                th:field="*{turno}"
+                                required
+                                class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition"
+                                th:classappend="${#fields.hasErrors('turno')} ? 'border-red-500 bg-red-50' : ''">
+                            <option value="">-- Seleccione Turno --</option>
+                            <option th:each="t : ${turnos}"
+                                    th:value="${t}"
+                                    th:text="${t.name() == 'MANANA' ? 'MAÑANA' : t.name()}">
+                                MAÑANA
+                            </option>
+                        </select>
+                        <p th:if="${#fields.hasErrors('turno')}" th:errors="*{turno}" class="text-xs text-red-600 mt-1 font-medium"></p>
+                    </div>
+
+                    <!-- Grado (Opcional) -->
+                    <div>
+                        <label for="gradoId" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                            Grado <span class="text-xs font-normal text-slate-400 lowercase">(opcional)</span>
+                        </label>
+                        <select id="gradoId"
+                                th:field="*{gradoId}"
+                                class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition"
+                                th:classappend="${#fields.hasErrors('gradoId')} ? 'border-red-500 bg-red-50' : ''">
+                            <option value="">-- Todos los grados (General) --</option>
+                            <option th:each="g : ${grados}"
+                                    th:value="${g.id}"
+                                    th:text="${g.nombre + ' (' + g.nivel + ')'}">
+                                1° Primaria
+                            </option>
+                        </select>
+                        <p th:if="${#fields.hasErrors('gradoId')}" th:errors="*{gradoId}" class="text-xs text-red-600 mt-1 font-medium"></p>
+                    </div>
+
+                    <!-- Sección (Opcional) -->
+                    <div>
+                        <label for="seccionId" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                            Sección <span class="text-xs font-normal text-slate-400 lowercase">(opcional)</span>
+                        </label>
+                        <select id="seccionId"
+                                th:field="*{seccionId}"
+                                class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition"
+                                th:classappend="${#fields.hasErrors('seccionId')} ? 'border-red-500 bg-red-50' : ''">
+                            <option value="">-- Todas las secciones del grado/turno --</option>
+                            <option th:each="s : ${secciones}"
+                                    th:value="${s.id}"
+                                    th:text="${s.nombre + ' (' + (s.gradoNombre != null ? s.gradoNombre : '') + ')'}">
+                                Sección A
+                            </option>
+                        </select>
+                        <p th:if="${#fields.hasErrors('seccionId')}" th:errors="*{seccionId}" class="text-xs text-red-600 mt-1 font-medium"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bloque 2: Horas y Tolerancia -->
+            <div class="space-y-4 pt-4 border-t border-slate-100">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 border-b border-slate-100 pb-1">
+                    2. Horas y Tolerancia
+                </h3>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <!-- Hora Entrada -->
+                    <div>
+                        <label for="horaEntrada" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                            Hora Entrada <span class="text-red-500">*</span>
+                        </label>
+                        <input type="time"
+                               id="horaEntrada"
+                               th:field="*{horaEntrada}"
+                               required
+                               class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition"
+                               th:classappend="${#fields.hasErrors('horaEntrada')} ? 'border-red-500 bg-red-50' : ''">
+                        <p th:if="${#fields.hasErrors('horaEntrada')}" th:errors="*{horaEntrada}" class="text-xs text-red-600 mt-1 font-medium"></p>
+                    </div>
+
+                    <!-- Minutos de Tolerancia -->
+                    <div>
+                        <label for="minutosTolerancia" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                            Tolerancia (min) <span class="text-red-500">*</span>
+                        </label>
+                        <input type="number"
+                               id="minutosTolerancia"
+                               th:field="*{minutosTolerancia}"
+                               min="0"
+                               max="120"
+                               placeholder="Ej. 10"
+                               required
+                               class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition"
+                               th:classappend="${#fields.hasErrors('minutosTolerancia')} ? 'border-red-500 bg-red-50' : ''">
+                        <p th:if="${#fields.hasErrors('minutosTolerancia')}" th:errors="*{minutosTolerancia}" class="text-xs text-red-600 mt-1 font-medium"></p>
+                    </div>
+
+                    <!-- Hora Salida -->
+                    <div>
+                        <label for="horaSalida" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                            Hora Salida <span class="text-red-500">*</span>
+                        </label>
+                        <input type="time"
+                               id="horaSalida"
+                               th:field="*{horaSalida}"
+                               required
+                               class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition"
+                               th:classappend="${#fields.hasErrors('horaSalida')} ? 'border-red-500 bg-red-50' : ''">
+                        <p th:if="${#fields.hasErrors('horaSalida')}" th:errors="*{horaSalida}" class="text-xs text-red-600 mt-1 font-medium"></p>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-emerald-50 rounded-lg border border-emerald-200 text-xs text-emerald-800">
+                    <strong>Regla de cálculo:</strong> Los ingresos registrados hasta
+                    <em>Hora Entrada + Tolerancia</em> se registrarán como <strong>PRESENTE</strong>.
+                    Pasado ese límite se considerarán automáticamente como <strong>TARDANZA</strong>.
+                </div>
+            </div>
+
+            <!-- Bloque 3: Vigencia Temporal -->
+            <div class="space-y-4 pt-4 border-t border-slate-100">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 border-b border-slate-100 pb-1">
+                    3. Periodo de Vigencia
+                </h3>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Fecha Inicio -->
+                    <div>
+                        <label for="fechaInicio" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                            Fecha de Inicio <span class="text-red-500">*</span>
+                        </label>
+                        <input type="date"
+                               id="fechaInicio"
+                               th:field="*{fechaInicio}"
+                               required
+                               class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition"
+                               th:classappend="${#fields.hasErrors('fechaInicio')} ? 'border-red-500 bg-red-50' : ''">
+                        <p th:if="${#fields.hasErrors('fechaInicio')}" th:errors="*{fechaInicio}" class="text-xs text-red-600 mt-1 font-medium"></p>
+                    </div>
+
+                    <!-- Fecha Fin -->
+                    <div>
+                        <label for="fechaFin" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                            Fecha de Fin <span class="text-red-500">*</span>
+                        </label>
+                        <input type="date"
+                               id="fechaFin"
+                               th:field="*{fechaFin}"
+                               required
+                               class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition"
+                               th:classappend="${#fields.hasErrors('fechaFin')} ? 'border-red-500 bg-red-50' : ''">
+                        <p th:if="${#fields.hasErrors('fechaFin')}" th:errors="*{fechaFin}" class="text-xs text-red-600 mt-1 font-medium"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="flex items-center justify-end space-x-3 pt-6 border-t border-slate-100">
+                <a th:href="@{/academico/horarios}"
+                   class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-medium transition duration-150">
+                    Cancelar
+                </a>
+                <button type="submit"
+                        class="px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-sm font-semibold shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition duration-150">
+                    <span th:text="${isEdit == true} ? 'Guardar Cambios' : 'Registrar Horario'">Guardar</span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+</div>
+</body>
+</html>

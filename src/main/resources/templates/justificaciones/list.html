@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layouts/main :: layout('Gestión de Justificaciones', 'justificaciones', ~{::#justificaciones-list-content})}">
+<head>
+  <title>Gestión de Justificaciones</title>
+</head>
+<body>
+<div id="justificaciones-list-content" class="space-y-6">
+
+  <!-- Encabezado de Página -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight" th:text="#{justificacion.titulo.listado}">Gestión de Justificaciones</h1>
+      <p class="text-sm text-slate-500">Consulta, filtrado y revisión de solicitudes de justificación de inasistencias y tardanzas.</p>
+    </div>
+  </div>
+
+  <!-- Panel de Filtros y Búsqueda -->
+  <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 sm:p-5">
+    <form th:action="@{/justificaciones}" method="get" id="form-filtros" class="space-y-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <!-- Búsqueda por texto (DNI o Nombres) -->
+        <div class="sm:col-span-2">
+          <label for="q" class="block text-xs font-semibold text-slate-600 mb-1">Buscar Estudiante</label>
+          <div class="relative">
+            <input type="text" id="q" name="q" th:value="${q}"
+                   placeholder="DNI, nombres o apellidos..."
+                   class="w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition">
+            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Filtro Estado Justificación -->
+        <div>
+          <label for="estado" class="block text-xs font-semibold text-slate-600 mb-1">Estado Justificación</label>
+          <select id="estado" name="estado"
+                  class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition bg-white">
+            <option value="">Todos los Estados</option>
+            <option th:each="est : ${estados}" th:value="${est}" th:text="${est.name()}" th:selected="${est == estado}"></option>
+          </select>
+        </div>
+
+        <!-- Filtro Año Escolar -->
+        <div>
+          <label for="anioEscolarId" class="block text-xs font-semibold text-slate-600 mb-1">Año Escolar</label>
+          <select id="anioEscolarId" name="anioEscolarId"
+                  class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition bg-white">
+            <option value="">Todos los Años</option>
+            <option th:each="a : ${aniosEscolares}" th:value="${a.id}" th:text="${a.nombre}" th:selected="${a.id == anioEscolarId}"></option>
+          </select>
+        </div>
+
+        <!-- Filtro Grado -->
+        <div>
+          <label for="gradoId" class="block text-xs font-semibold text-slate-600 mb-1">Grado</label>
+          <select id="gradoId" name="gradoId" onchange="cargarSeccionesPorGrado(this.value)"
+                  class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition bg-white">
+            <option value="">Todos los Grados</option>
+            <option th:each="g : ${grados}" th:value="${g.id}" th:text="${g.nombre}" th:selected="${g.id == gradoId}"></option>
+          </select>
+        </div>
+
+        <!-- Filtro Sección -->
+        <div>
+          <label for="seccionId" class="block text-xs font-semibold text-slate-600 mb-1">Sección</label>
+          <select id="seccionId" name="seccionId"
+                  class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition bg-white">
+            <option value="">Todas las Secciones</option>
+            <option th:each="s : ${secciones}" th:value="${s.id}" th:text="${s.nombre}" th:selected="${s.id == seccionId}"></option>
+          </select>
+        </div>
+
+        <!-- Filtro Fecha de Solicitud -->
+        <div>
+          <label for="fechaSolicitud" class="block text-xs font-semibold text-slate-600 mb-1">Fecha Solicitud</label>
+          <input type="date" id="fechaSolicitud" name="fechaSolicitud" th:value="${fechaSolicitud}"
+                 class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition">
+        </div>
+
+        <!-- Filtro Fecha de Asistencia -->
+        <div>
+          <label for="fechaAsistencia" class="block text-xs font-semibold text-slate-600 mb-1">Fecha de Asistencia</label>
+          <input type="date" id="fechaAsistencia" name="fechaAsistencia" th:value="${fechaAsistencia}"
+                 class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition">
+        </div>
+      </div>
+
+      <!-- Botones de Acción -->
+      <div class="flex items-center justify-end gap-3 pt-2 border-t border-slate-100">
+        <a th:href="@{/justificaciones}"
+           class="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 border border-slate-300 rounded-lg hover:bg-slate-50 transition">
+          Limpiar Filtros
+        </a>
+        <button type="submit" id="btn-buscar"
+                class="px-4 py-2 text-xs font-semibold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg shadow-sm transition">
+          Buscar Justificaciones
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Tabla de Justificaciones -->
+  <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-sm border-collapse" id="tabla-justificaciones">
+        <thead class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider">
+          <tr>
+            <th class="px-4 py-3">Estudiante</th>
+            <th class="px-4 py-3">DNI</th>
+            <th class="px-4 py-3">Fecha Asist.</th>
+            <th class="px-4 py-3">Estado Asist.</th>
+            <th class="px-4 py-3">Motivo</th>
+            <th class="px-4 py-3">F. Solicitud</th>
+            <th class="px-4 py-3">Estado Solicitud</th>
+            <th class="px-4 py-3">Revisor</th>
+            <th class="px-4 py-3 text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr th:if="${justificaciones.content.empty}">
+            <td colspan="9" class="px-4 py-12 text-center text-slate-400">
+              No se encontraron solicitudes de justificación registradas.
+            </td>
+          </tr>
+          <tr th:each="j : ${justificaciones.content}" class="hover:bg-slate-50/80 transition-colors">
+            <td class="px-4 py-3 font-semibold text-slate-800" th:text="${j.estudianteNombreCompleto}"></td>
+            <td class="px-4 py-3 text-slate-600" th:text="${j.estudianteNumeroDocumento != null ? j.estudianteNumeroDocumento : '—'}"></td>
+            <td class="px-4 py-3 text-slate-700" th:text="${j.asistenciaFecha != null ? #temporals.format(j.asistenciaFecha,'dd/MM/yyyy') : '—'}"></td>
+            <td class="px-4 py-3">
+              <span th:if="${j.asistenciaEstado != null}"
+                    th:classappend="${j.asistenciaEstado.name() == 'PRESENTE'} ? 'bg-emerald-100 text-emerald-800' :
+                                    (${j.asistenciaEstado.name() == 'TARDANZA'} ? 'bg-amber-100 text-amber-800' :
+                                    (${j.asistenciaEstado.name() == 'AUSENTE'} ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'))"
+                    class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold"
+                    th:text="${j.asistenciaEstado.name()}"></span>
+            </td>
+            <td class="px-4 py-3 text-slate-700 max-w-xs truncate" th:title="${j.motivo}" th:text="${j.motivo}"></td>
+            <td class="px-4 py-3 text-slate-600" th:text="${#temporals.format(j.fechaSolicitud,'dd/MM/yyyy')}"></td>
+            <td class="px-4 py-3">
+              <span th:classappend="${j.estado.name() == 'PENDIENTE'} ? 'bg-amber-100 text-amber-800 border-amber-300' :
+                                    (${j.estado.name() == 'APROBADA'} ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-red-100 text-red-800 border-red-300')"
+                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border"
+                    th:text="${j.estado.name()}"></span>
+            </td>
+            <td class="px-4 py-3 text-slate-600 text-xs"
+                th:text="${j.revisadoPorNombre != null ? j.revisadoPorNombre : (j.revisadoPorUsername != null ? j.revisadoPorUsername : '—')}"></td>
+            <td class="px-4 py-3 text-right space-x-2">
+              <a th:href="@{/justificaciones/{id}(id=${j.id})}"
+                 id="btn-ver-justificacion"
+                 class="text-emerald-700 hover:text-emerald-900 font-semibold text-xs transition">Ver</a>
+              <a th:href="@{/justificaciones/{id}/revisar(id=${j.id})}"
+                 sec:authorize="hasAuthority('JUSTIFICACION_REVISAR')"
+                 th:if="${j.estado.name() == 'PENDIENTE'}"
+                 id="btn-revisar-justificacion"
+                 class="text-amber-600 hover:text-amber-800 font-semibold text-xs transition">Revisar</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginación Real -->
+    <div th:if="${justificaciones.totalPages > 1}" class="px-4 py-3 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <p class="text-xs text-slate-500">
+        Mostrando <span th:text="${justificaciones.number * justificaciones.size + 1}"></span> -
+        <span th:text="${justificaciones.number * justificaciones.size + justificaciones.numberOfElements}"></span>
+        de <span th:text="${justificaciones.totalElements}"></span> solicitudes
+      </p>
+      <div class="flex items-center gap-1">
+        <a th:href="@{/justificaciones(page=${justificaciones.number - 1}, size=${size}, q=${q}, estado=${estado}, fechaSolicitud=${fechaSolicitud}, fechaAsistencia=${fechaAsistencia}, anioEscolarId=${anioEscolarId}, gradoId=${gradoId}, seccionId=${seccionId})}"
+           th:if="${!justificaciones.first}"
+           class="px-2.5 py-1 text-xs font-medium text-slate-700 bg-white border border-slate-300 rounded hover:bg-slate-50 transition">Anterior</a>
+        <span th:each="i : ${#numbers.sequence(0, justificaciones.totalPages - 1)}"
+              th:classappend="${i == justificaciones.number} ? 'bg-emerald-700 text-white border-emerald-700' : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'"
+              class="px-2.5 py-1 text-xs font-medium border rounded transition">
+          <a th:href="@{/justificaciones(page=${i}, size=${size}, q=${q}, estado=${estado}, fechaSolicitud=${fechaSolicitud}, fechaAsistencia=${fechaAsistencia}, anioEscolarId=${anioEscolarId}, gradoId=${gradoId}, seccionId=${seccionId})}"
+             th:text="${i + 1}" class="block w-full h-full"></a>
+        </span>
+        <a th:href="@{/justificaciones(page=${justificaciones.number + 1}, size=${size}, q=${q}, estado=${estado}, fechaSolicitud=${fechaSolicitud}, fechaAsistencia=${fechaAsistencia}, anioEscolarId=${anioEscolarId}, gradoId=${gradoId}, seccionId=${seccionId})}"
+           th:if="${!justificaciones.last}"
+           class="px-2.5 py-1 text-xs font-medium text-slate-700 bg-white border border-slate-300 rounded hover:bg-slate-50 transition">Siguiente</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function cargarSeccionesPorGrado(gradoId) {
+      const seccionSelect = document.getElementById('seccionId');
+      seccionSelect.innerHTML = '<option value="">Todas las Secciones</option>';
+      if (!gradoId) return;
+
+      fetch('/justificaciones/secciones?gradoId=' + encodeURIComponent(gradoId))
+        .then(response => response.json())
+        .then(data => {
+          data.forEach(sec => {
+            const opt = document.createElement('option');
+            opt.value = sec.id;
+            opt.textContent = sec.nombre;
+            seccionSelect.appendChild(opt);
+          });
+        })
+        .catch(err => console.error('Error cargando secciones:', err));
+    }
+  </script>
+</div>
+</body>
+</html>

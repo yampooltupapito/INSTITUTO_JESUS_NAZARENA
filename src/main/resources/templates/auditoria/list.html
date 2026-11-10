@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layouts/main :: layout(#{auditoria.title}, 'auditoria', ~{::#auditoria-list-content})}">
+<head>
+    <title th:text="#{auditoria.title}">Auditoría del Sistema</title>
+</head>
+<body>
+<div id="auditoria-list-content" class="space-y-6">
+
+    <!-- Encabezado -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900 tracking-tight" th:text="#{auditoria.title}">
+                Auditoría del Sistema
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+                Registro histórico inmutable de eventos críticos, accesos y operaciones administrativas.
+            </p>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                <svg class="w-3.5 h-3.5 mr-1 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                </svg>
+                Solo Lectura
+            </span>
+        </div>
+    </div>
+
+    <!-- Filtros de Búsqueda -->
+    <div class="bg-white p-4 sm:p-5 rounded-xl border border-slate-200 shadow-sm">
+        <form th:action="@{/auditoria}" method="get" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+            <!-- Fecha Inicio -->
+            <div>
+                <label for="fechaInicio" class="block text-xs font-semibold text-slate-700 mb-1">
+                    Fecha Desde
+                </label>
+                <input type="date"
+                       id="fechaInicio"
+                       name="fechaInicio"
+                       th:value="${filtro.fechaInicio}"
+                       class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+            </div>
+
+            <!-- Fecha Fin -->
+            <div>
+                <label for="fechaFin" class="block text-xs font-semibold text-slate-700 mb-1">
+                    Fecha Hasta
+                </label>
+                <input type="date"
+                       id="fechaFin"
+                       name="fechaFin"
+                       th:value="${filtro.fechaFin}"
+                       class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+            </div>
+
+            <!-- Username -->
+            <div>
+                <label for="username" class="block text-xs font-semibold text-slate-700 mb-1">
+                    Usuario
+                </label>
+                <input type="text"
+                       id="username"
+                       name="username"
+                       th:value="${filtro.username}"
+                       placeholder="Nombre de usuario"
+                       class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+            </div>
+
+            <!-- Módulo -->
+            <div>
+                <label for="modulo" class="block text-xs font-semibold text-slate-700 mb-1">
+                    Módulo
+                </label>
+                <select id="modulo"
+                        name="modulo"
+                        class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                    <option value="">Todos los módulos</option>
+                    <option th:each="m : ${modulos}"
+                            th:value="${m}"
+                            th:text="${m}"
+                            th:selected="${filtro.modulo != null and filtro.modulo == m}">
+                    </option>
+                </select>
+            </div>
+
+            <!-- Acción -->
+            <div>
+                <label for="accion" class="block text-xs font-semibold text-slate-700 mb-1">
+                    Acción
+                </label>
+                <select id="accion"
+                        name="accion"
+                        class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                    <option value="">Todas las acciones</option>
+                    <option th:each="a : ${acciones}"
+                            th:value="${a}"
+                            th:text="${a}"
+                            th:selected="${filtro.accion != null and filtro.accion == a}">
+                    </option>
+                </select>
+            </div>
+
+            <!-- Resultado -->
+            <div>
+                <label for="resultado" class="block text-xs font-semibold text-slate-700 mb-1">
+                    Resultado
+                </label>
+                <select id="resultado"
+                        name="resultado"
+                        class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                    <option value="">Todos los resultados</option>
+                    <option th:each="r : ${resultados}"
+                            th:value="${r}"
+                            th:text="${r}"
+                            th:selected="${filtro.resultado != null and filtro.resultado == r}">
+                    </option>
+                </select>
+            </div>
+
+            <!-- Entidad Tipo -->
+            <div>
+                <label for="entidadTipo" class="block text-xs font-semibold text-slate-700 mb-1">
+                    Tipo de Entidad
+                </label>
+                <input type="text"
+                       id="entidadTipo"
+                       name="entidadTipo"
+                       th:value="${filtro.entidadTipo}"
+                       placeholder="Ej. ASISTENCIA, USUARIO"
+                       class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+            </div>
+
+            <!-- Botones -->
+            <div class="flex gap-2">
+                <button type="submit"
+                        class="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-semibold rounded-lg text-white bg-slate-800 hover:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-700 transition">
+                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    Filtrar
+                </button>
+                <a th:href="@{/auditoria}"
+                   class="inline-flex items-center justify-center px-3 py-2 border border-slate-300 text-sm font-medium rounded-lg text-slate-700 bg-white hover:bg-slate-50 transition"
+                   title="Limpiar filtros">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tabla de Eventos -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-slate-200 text-left text-sm text-slate-600">
+                <thead class="bg-slate-50 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                <tr>
+                    <th scope="col" class="px-4 py-3 sm:px-6">Fecha / Hora</th>
+                    <th scope="col" class="px-4 py-3 sm:px-6">Usuario</th>
+                    <th scope="col" class="px-4 py-3 sm:px-6">Módulo</th>
+                    <th scope="col" class="px-4 py-3 sm:px-6">Acción</th>
+                    <th scope="col" class="px-4 py-3 sm:px-6">Entidad</th>
+                    <th scope="col" class="px-4 py-3 sm:px-6">Resultado</th>
+                    <th scope="col" class="px-4 py-3 sm:px-6">Descripción</th>
+                    <th scope="col" class="px-4 py-3 sm:px-6 text-right">Ver</th>
+                </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                <tr th:if="${eventos.empty}">
+                    <td colspan="8" class="px-6 py-10 text-center text-slate-400" th:text="#{auditoria.sin-resultados}">
+                        No se encontraron eventos para los filtros seleccionados.
+                    </td>
+                </tr>
+                <tr th:each="evento : ${eventos.content}" class="hover:bg-slate-50 transition">
+                    <td class="px-4 py-3 sm:px-6 whitespace-nowrap text-xs text-slate-600 font-mono"
+                        th:text="${#temporals.format(evento.fecha, 'yyyy-MM-dd HH:mm:ss')}">
+                        2026-10-03 12:00:00
+                    </td>
+                    <td class="px-4 py-3 sm:px-6 whitespace-nowrap font-medium text-slate-900">
+                        <span th:text="${evento.username != null ? evento.username : 'ANÓNIMO'}">admin</span>
+                    </td>
+                    <td class="px-4 py-3 sm:px-6 whitespace-nowrap">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-800"
+                              th:text="${evento.modulo}">
+                            SEGURIDAD
+                        </span>
+                    </td>
+                    <td class="px-4 py-3 sm:px-6 whitespace-nowrap font-mono text-xs text-slate-700"
+                        th:text="${evento.accion}">
+                        LOGIN_EXITOSO
+                    </td>
+                    <td class="px-4 py-3 sm:px-6 whitespace-nowrap text-xs text-slate-600">
+                        <span th:if="${evento.entidadTipo != null}">
+                            <span class="font-medium text-slate-800" th:text="${evento.entidadTipo}"></span>
+                            <span th:if="${evento.entidadId != null}" th:text="' #' + ${evento.entidadId}"></span>
+                        </span>
+                        <span th:unless="${evento.entidadTipo != null}" class="text-slate-400">-</span>
+                    </td>
+                    <td class="px-4 py-3 sm:px-6 whitespace-nowrap">
+                        <span th:if="${evento.resultado.name() == 'EXITO'}"
+                              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
+                            ÉXITO
+                        </span>
+                        <span th:unless="${evento.resultado.name() == 'EXITO'}"
+                              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800">
+                            FALLO
+                        </span>
+                    </td>
+                    <td class="px-4 py-3 sm:px-6 text-xs text-slate-700 max-w-xs truncate"
+                        th:text="${evento.descripcion}"
+                        th:title="${evento.descripcion}">
+                        Descripción breve del evento
+                    </td>
+                    <td class="px-4 py-3 sm:px-6 whitespace-nowrap text-right text-xs">
+                        <a th:href="@{/auditoria/{id}(id=${evento.id})}"
+                           class="inline-flex items-center text-emerald-600 hover:text-emerald-900 font-semibold transition"
+                           title="Ver detalle del evento">
+                            <svg class="w-4 h-4 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                            Ver
+                        </a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginación -->
+        <div th:if="${eventos.totalPages > 1}"
+             class="flex flex-col sm:flex-row sm:items-center sm:justify-between px-4 py-3 sm:px-6 border-t border-slate-200 gap-3">
+            <div class="text-xs text-slate-500">
+                Página <span class="font-medium text-slate-700" th:text="${eventos.number + 1}">1</span>
+                de <span class="font-medium text-slate-700" th:text="${eventos.totalPages}">1</span>
+                (Total: <span class="font-medium text-slate-700" th:text="${eventos.totalElements}">0</span> eventos)
+            </div>
+            <div class="flex items-center space-x-1">
+                <a th:if="${!eventos.first}"
+                   th:href="@{/auditoria(page=${eventos.number - 1}, size=${eventos.size}, fechaInicio=${filtro.fechaInicio}, fechaFin=${filtro.fechaFin}, username=${filtro.username}, modulo=${filtro.modulo}, accion=${filtro.accion}, resultado=${filtro.resultado}, entidadTipo=${filtro.entidadTipo}, entidadId=${filtro.entidadId})}"
+                   class="px-2.5 py-1.5 border border-slate-300 rounded text-xs font-medium text-slate-600 bg-white hover:bg-slate-50 transition">
+                    Anterior
+                </a>
+                <a th:if="${!eventos.last}"
+                   th:href="@{/auditoria(page=${eventos.number + 1}, size=${eventos.size}, fechaInicio=${filtro.fechaInicio}, fechaFin=${filtro.fechaFin}, username=${filtro.username}, modulo=${filtro.modulo}, accion=${filtro.accion}, resultado=${filtro.resultado}, entidadTipo=${filtro.entidadTipo}, entidadId=${filtro.entidadId})}"
+                   class="px-2.5 py-1.5 border border-slate-300 rounded text-xs font-medium text-slate-600 bg-white hover:bg-slate-50 transition">
+                    Siguiente
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

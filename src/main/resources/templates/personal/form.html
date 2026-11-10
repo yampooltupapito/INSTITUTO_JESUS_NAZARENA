@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layouts/main :: layout(${isEdit} ? #{personal.titulo.editar} : #{personal.titulo.nuevo}, 'personal', ~{::#personal-form-content})}">
+<head>
+    <title th:text="${isEdit} ? #{personal.titulo.editar} : #{personal.titulo.nuevo}">Formulario de Personal</title>
+</head>
+<body>
+<div id="personal-form-content" class="max-w-4xl mx-auto space-y-6">
+
+    <!-- Encabezado con Migas de Pan -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200">
+        <div>
+            <div class="flex items-center space-x-2 text-xs text-slate-500 mb-1">
+                <a th:href="@{/personal}" class="hover:text-emerald-700 transition">Personal</a>
+                <span>/</span>
+                <span th:text="${isEdit} ? 'Editar Personal' : 'Nuevo Registro'" class="text-slate-700 font-medium">Nuevo Registro</span>
+            </div>
+            <h1 class="text-2xl font-bold text-slate-900 tracking-tight"
+                th:text="${isEdit} ? 'Editar Personal: ' + ${personal.nombreCompleto} : 'Registrar Nuevo Personal'">
+                Registrar Nuevo Personal
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+                <span th:if="${!isEdit}">Ficha de inscripción institucional para directores, docentes y auxiliares. Si el documento ya existe, se asignará la función a la persona.</span>
+                <span th:if="${isEdit}">Actualice los datos personales y de contacto del colaborador.</span>
+            </p>
+        </div>
+        <div>
+            <a th:href="@{/personal}"
+               class="inline-flex items-center justify-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-lg text-slate-700 bg-white hover:bg-slate-50 shadow-sm transition">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                <span>Volver al Padrón</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Tarjeta del Formulario -->
+    <div class="bg-white p-6 sm:p-8 rounded-xl border border-slate-200 shadow-sm">
+        <form th:action="${isEdit} ? @{/personal/{id}(id=${personal.id})} : @{/personal}"
+              th:object="${personalForm}"
+              method="post"
+              class="space-y-6">
+
+            <!-- SECCIÓN 1: IDENTIFICACIÓN INSTITUCIONAL (Solo en creación) -->
+            <div th:if="${!isEdit}">
+                <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 pb-1 border-b border-slate-100 flex items-center">
+                    <span class="w-2 h-2 rounded-full bg-emerald-600 mr-2"></span>
+                    Función Institucional
+                </h3>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div>
+                        <label for="tipoActor" class="block text-xs font-semibold text-slate-700 mb-1">
+                            Tipo de Función / Cargo <span class="text-rose-500">*</span>
+                        </label>
+                        <select id="tipoActor"
+                                th:field="*{tipoActor}"
+                                class="w-full px-3 py-2 border rounded-lg text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+                                th:classappend="${#fields.hasErrors('tipoActor')} ? 'border-rose-400 bg-rose-50' : 'border-slate-300'">
+                            <option value="">-- Seleccione una función --</option>
+                            <option th:each="t : ${tiposPersonal}"
+                                    th:value="${t}"
+                                    th:text="${t == 'DIRECTOR' ? 'Director / Equipo Directivo (DIRECTOR)' : (t == 'DOCENTE' ? 'Docente / Profesor (DOCENTE)' : 'Auxiliar de Educación (AUXILIAR)')}">
+                                DOCENTE
+                            </option>
+                        </select>
+                        <p th:if="${#fields.hasErrors('tipoActor')}" th:errors="*{tipoActor}" class="text-xs text-rose-600 mt-1">Error</p>
+                        <p class="text-[11px] text-slate-400 mt-1">
+                            Determina las atribuciones y el rol que desempeñará en la institución.
+                        </p>
+                    </div>
+
+                    <div>
+                        <label for="fechaInicio" class="block text-xs font-semibold text-slate-700 mb-1">
+                            Fecha de Inicio de Labores
+                        </label>
+                        <input type="date"
+                               id="fechaInicio"
+                               th:field="*{fechaInicio}"
+                               class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition">
+                        <p class="text-[11px] text-slate-400 mt-1">Por defecto toma la fecha actual.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 2: DATOS PERSONALES -->
+            <div>
+                <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 pb-1 border-b border-slate-100 flex items-center">
+                    <span class="w-2 h-2 rounded-full bg-emerald-600 mr-2"></span>
+                    Datos Personales
+                </h3>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                    <!-- Tipo Documento -->
+                    <div>
+                        <label for="tipoDocumento" class="block text-xs font-semibold text-slate-700 mb-1">
+                            Tipo de Documento <span class="text-rose-500">*</span>
+                        </label>
+                        <select id="tipoDocumento"
+                                th:field="*{tipoDocumento}"
+                                class="w-full px-3 py-2 border rounded-lg text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+                                th:classappend="${#fields.hasErrors('tipoDocumento')} ? 'border-rose-400 bg-rose-50' : 'border-slate-300'">
+                            <option th:each="td : ${tiposDocumento}"
+                                    th:value="${td}"
+                                    th:text="${td}">
+                                DNI
+                            </option>
+                        </select>
+                        <p th:if="${#fields.hasErrors('tipoDocumento')}" th:errors="*{tipoDocumento}" class="text-xs text-rose-600 mt-1">Error</p>
+                    </div>
+
+                    <!-- Número de Documento -->
+                    <div class="sm:col-span-2">
+                        <label for="numeroDocumento" class="block text-xs font-semibold text-slate-700 mb-1">
+                            Número de Documento <span class="text-rose-500">*</span>
+                        </label>
+                        <input type="text"
+                               id="numeroDocumento"
+                               th:field="*{numeroDocumento}"
+                               placeholder="Ej. 10203040"
+                               class="w-full px-3 py-2 border rounded-lg text-sm font-mono text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+                               th:classappend="${#fields.hasErrors('numeroDocumento')} ? 'border-rose-400 bg-rose-50' : 'border-slate-300'">
+                        <p th:if="${#fields.hasErrors('numeroDocumento')}" th:errors="*{numeroDocumento}" class="text-xs text-rose-600 mt-1">Error</p>
+                    </div>
+
+                    <!-- Nombres -->
+                    <div>
+                        <label for="nombres" class="block text-xs font-semibold text-slate-700 mb-1">
+                            Nombres <span class="text-rose-500">*</span>
+                        </label>
+                        <input type="text"
+                               id="nombres"
+                               th:field="*{nombres}"
+                               placeholder="Ej. Juan Alberto"
+                               class="w-full px-3 py-2 border rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+                               th:classappend="${#fields.hasErrors('nombres')} ? 'border-rose-400 bg-rose-50' : 'border-slate-300'">
+                        <p th:if="${#fields.hasErrors('nombres')}" th:errors="*{nombres}" class="text-xs text-rose-600 mt-1">Error</p>
+                    </div>
+
+                    <!-- Apellido Paterno -->
+                    <div>
+                        <label for="apellidoPaterno" class="block text-xs font-semibold text-slate-700 mb-1">
+                            Apellido Paterno <span class="text-rose-500">*</span>
+                        </label>
+                        <input type="text"
+                               id="apellidoPaterno"
+                               th:field="*{apellidoPaterno}"
+                               placeholder="Ej. Pérez"
+                               class="w-full px-3 py-2 border rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+                               th:classappend="${#fields.hasErrors('apellidoPaterno')} ? 'border-rose-400 bg-rose-50' : 'border-slate-300'">
+                        <p th:if="${#fields.hasErrors('apellidoPaterno')}" th:errors="*{apellidoPaterno}" class="text-xs text-rose-600 mt-1">Error</p>
+                    </div>
+
+                    <!-- Apellido Materno -->
+                    <div>
+                        <label for="apellidoMaterno" class="block text-xs font-semibold text-slate-700 mb-1">
+                            Apellido Materno <span class="text-rose-500">*</span>
+                        </label>
+                        <input type="text"
+                               id="apellidoMaterno"
+                               th:field="*{apellidoMaterno}"
+                               placeholder="Ej. Quispe"
+                               class="w-full px-3 py-2 border rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+                               th:classappend="${#fields.hasErrors('apellidoMaterno')} ? 'border-rose-400 bg-rose-50' : 'border-slate-300'">
+                        <p th:if="${#fields.hasErrors('apellidoMaterno')}" th:errors="*{apellidoMaterno}" class="text-xs text-rose-600 mt-1">Error</p>
+                    </div>
+
+                    <!-- Fecha de Nacimiento -->
+                    <div>
+                        <label for="fechaNacimiento" class="block text-xs font-semibold text-slate-700 mb-1">
+                            Fecha de Nacimiento <span class="text-rose-500">*</span>
+                        </label>
+                        <input type="date"
+                               id="fechaNacimiento"
+                               th:field="*{fechaNacimiento}"
+                               class="w-full px-3 py-2 border rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+                               th:classappend="${#fields.hasErrors('fechaNacimiento')} ? 'border-rose-400 bg-rose-50' : 'border-slate-300'">
+                        <p th:if="${#fields.hasErrors('fechaNacimiento')}" th:errors="*{fechaNacimiento}" class="text-xs text-rose-600 mt-1">Error</p>
+                    </div>
+
+                    <!-- Sexo -->
+                    <div>
+                        <label for="sexo" class="block text-xs font-semibold text-slate-700 mb-1">
+                            Sexo <span class="text-rose-500">*</span>
+                        </label>
+                        <select id="sexo"
+                                th:field="*{sexo}"
+                                class="w-full px-3 py-2 border rounded-lg text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+                                th:classappend="${#fields.hasErrors('sexo')} ? 'border-rose-400 bg-rose-50' : 'border-slate-300'">
+                            <option th:each="s : ${sexos}"
+                                    th:value="${s}"
+                                    th:text="${s}">
+                                MASCULINO
+                            </option>
+                        </select>
+                        <p th:if="${#fields.hasErrors('sexo')}" th:errors="*{sexo}" class="text-xs text-rose-600 mt-1">Error</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 3: CONTACTO Y DOMICILIO -->
+            <div>
+                <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 pb-1 border-b border-slate-100 flex items-center">
+                    <span class="w-2 h-2 rounded-full bg-emerald-600 mr-2"></span>
+                    Información de Contacto
+                </h3>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <!-- Teléfono -->
+                    <div>
+                        <label for="telefono" class="block text-xs font-semibold text-slate-700 mb-1">
+                            Teléfono / Celular
+                        </label>
+                        <input type="text"
+                               id="telefono"
+                               th:field="*{telefono}"
+                               placeholder="Ej. 987654321"
+                               class="w-full px-3 py-2 border rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+                               th:classappend="${#fields.hasErrors('telefono')} ? 'border-rose-400 bg-rose-50' : 'border-slate-300'">
+                        <p th:if="${#fields.hasErrors('telefono')}" th:errors="*{telefono}" class="text-xs text-rose-600 mt-1">Error</p>
+                    </div>
+
+                    <!-- Correo -->
+                    <div>
+                        <label for="correo" class="block text-xs font-semibold text-slate-700 mb-1">
+                            Correo Electrónico
+                        </label>
+                        <input type="email"
+                               id="correo"
+                               th:field="*{correo}"
+                               placeholder="Ej. docente@colegio.edu.pe"
+                               class="w-full px-3 py-2 border rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+                               th:classappend="${#fields.hasErrors('correo')} ? 'border-rose-400 bg-rose-50' : 'border-slate-300'">
+                        <p th:if="${#fields.hasErrors('correo')}" th:errors="*{correo}" class="text-xs text-rose-600 mt-1">Error</p>
+                    </div>
+
+                    <!-- Dirección -->
+                    <div class="sm:col-span-2">
+                        <label for="direccion" class="block text-xs font-semibold text-slate-700 mb-1">
+                            Dirección Domiciliaria
+                        </label>
+                        <input type="text"
+                               id="direccion"
+                               th:field="*{direccion}"
+                               placeholder="Ej. Jr. Las Flores 123, Ayacucho"
+                               class="w-full px-3 py-2 border rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+                               th:classappend="${#fields.hasErrors('direccion')} ? 'border-rose-400 bg-rose-50' : 'border-slate-300'">
+                        <p th:if="${#fields.hasErrors('direccion')}" th:errors="*{direccion}" class="text-xs text-rose-600 mt-1">Error</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="pt-4 border-t border-slate-200 flex items-center justify-end space-x-3">
+                <a th:href="@{/personal}"
+                   class="px-4 py-2 border border-slate-300 text-sm font-medium rounded-lg text-slate-700 bg-white hover:bg-slate-50 transition">
+                    Cancelar
+                </a>
+                <button type="submit"
+                        class="px-5 py-2 border border-transparent text-sm font-semibold rounded-lg text-white bg-emerald-700 hover:bg-emerald-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition">
+                    <span th:text="${isEdit} ? 'Guardar Cambios' : 'Registrar Personal'">Guardar</span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+</div>
+</body>
+</html>

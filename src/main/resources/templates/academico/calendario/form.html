@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layouts/main :: layout(${pageTitle}, 'calendario', ~{::#calendario-form-content})}">
+<head>
+    <title th:text="${pageTitle}">Calendario Escolar</title>
+</head>
+<body>
+<div id="calendario-form-content" class="max-w-2xl mx-auto space-y-6">
+
+    <!-- Encabezado -->
+    <div class="flex items-center justify-between pb-4 border-b border-slate-200">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900 tracking-tight" th:text="${pageTitle}">
+                Registrar Fecha Especial
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1">
+                Configure feriados, suspensiones de labores o jornadas lectivas extraordinarias
+            </p>
+        </div>
+        <a th:href="@{/academico/calendario}"
+           class="inline-flex items-center px-3 py-1.5 border border-slate-300 text-xs font-medium rounded-lg text-slate-700 bg-white hover:bg-slate-50">
+            Regresar
+        </a>
+    </div>
+
+    <!-- Formulario -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 sm:p-8">
+        <form th:action="${isEdit == true} ? @{/academico/calendario/{id}(id=${calendarioId})} : @{/academico/calendario}"
+              th:object="${calendarioRequest}"
+              method="post"
+              class="space-y-6">
+
+            <!-- Mensaje de error general si existe -->
+            <div th:if="${errorMessage}" class="p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs sm:text-sm">
+                <span th:text="${errorMessage}">Error</span>
+            </div>
+
+            <!-- Año Escolar -->
+            <div>
+                <label for="anioEscolarId" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                    Año Escolar <span class="text-red-500">*</span>
+                </label>
+                <select id="anioEscolarId"
+                        th:field="*{anioEscolarId}"
+                        required
+                        class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition"
+                        th:classappend="${#fields.hasErrors('anioEscolarId')} ? 'border-red-500 bg-red-50' : ''">
+                    <option value="">-- Seleccione Año Escolar --</option>
+                    <option th:each="a : ${aniosEscolares}"
+                            th:value="${a.id}"
+                            th:text="${a.anio + ' - ' + a.nombre + (a.activo ? ' (Activo)' : '')}">
+                        2026
+                    </option>
+                </select>
+                <p th:if="${#fields.hasErrors('anioEscolarId')}" th:errors="*{anioEscolarId}" class="text-xs text-red-600 mt-1 font-medium"></p>
+                <p class="text-xs text-slate-400 mt-1">La fecha especial debe encontrarse dentro del periodo lectivo oficial de este año.</p>
+            </div>
+
+            <!-- Fecha y Tipo de Día -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- Fecha -->
+                <div>
+                    <label for="fecha" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                        Fecha <span class="text-red-500">*</span>
+                    </label>
+                    <input type="date"
+                           id="fecha"
+                           th:field="*{fecha}"
+                           required
+                           class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition"
+                           th:classappend="${#fields.hasErrors('fecha')} ? 'border-red-500 bg-red-50' : ''" />
+                    <p th:if="${#fields.hasErrors('fecha')}" th:errors="*{fecha}" class="text-xs text-red-600 mt-1 font-medium"></p>
+                </div>
+
+                <!-- Tipo de Día -->
+                <div>
+                    <label for="tipoDia" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                        Tipo de Fecha <span class="text-red-500">*</span>
+                    </label>
+                    <select id="tipoDia"
+                            th:field="*{tipoDia}"
+                            required
+                            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition"
+                            th:classappend="${#fields.hasErrors('tipoDia')} ? 'border-red-500 bg-red-50' : ''">
+                        <option value="">-- Seleccione Tipo --</option>
+                        <option th:each="t : ${tiposDia}"
+                                th:value="${t}"
+                                th:text="${t.descripcion}">
+                            Feriado
+                        </option>
+                    </select>
+                    <p th:if="${#fields.hasErrors('tipoDia')}" th:errors="*{tipoDia}" class="text-xs text-red-600 mt-1 font-medium"></p>
+                </div>
+            </div>
+
+            <!-- Descripción -->
+            <div>
+                <label for="descripcion" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                    Descripción / Motivo <span class="text-xs font-normal text-slate-400 lowercase">(opcional, máx. 200 caracteres)</span>
+                </label>
+                <input type="text"
+                       id="descripcion"
+                       th:field="*{descripcion}"
+                       maxlength="200"
+                       placeholder="Ej: Día del Maestro, Aniversario del Colegio, etc."
+                       class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition"
+                       th:classappend="${#fields.hasErrors('descripcion')} ? 'border-red-500 bg-red-50' : ''" />
+                <p th:if="${#fields.hasErrors('descripcion')}" th:errors="*{descripcion}" class="text-xs text-red-600 mt-1 font-medium"></p>
+            </div>
+
+            <!-- Condición: esLectivo (Control de Asistencia) -->
+            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+                <span class="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                    ¿Habilita Control de Asistencia? (Es Lectivo) <span class="text-red-500">*</span>
+                </span>
+                <p class="text-xs text-slate-500">
+                    Determina si en esta fecha se debe registrar y controlar asistencia escolar de estudiantes.
+                </p>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                    <label class="flex items-center p-3 rounded-lg border border-slate-200 bg-white cursor-pointer hover:border-emerald-500 transition">
+                        <input type="radio"
+                               th:field="*{esLectivo}"
+                               value="false"
+                               class="text-emerald-700 focus:ring-emerald-500 h-4 w-4 border-slate-300" />
+                        <div class="ml-3">
+                            <span class="block text-sm font-bold text-rose-700">NO LECTIVO</span>
+                            <span class="block text-xs text-slate-500">No hay clases ni asistencia (feriado, suspensión, descanso).</span>
+                        </div>
+                    </label>
+
+                    <label class="flex items-center p-3 rounded-lg border border-slate-200 bg-white cursor-pointer hover:border-emerald-500 transition">
+                        <input type="radio"
+                               th:field="*{esLectivo}"
+                               value="true"
+                               class="text-emerald-700 focus:ring-emerald-500 h-4 w-4 border-slate-300" />
+                        <div class="ml-3">
+                            <span class="block text-sm font-bold text-emerald-800">LECTIVO</span>
+                            <span class="block text-xs text-slate-500">Sí se controla asistencia (recuperación, lectivo extraordinario).</span>
+                        </div>
+                    </label>
+                </div>
+                <p th:if="${#fields.hasErrors('esLectivo')}" th:errors="*{esLectivo}" class="text-xs text-red-600 mt-1 font-medium"></p>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="flex items-center justify-end space-x-3 pt-4 border-t border-slate-200">
+                <a th:href="@{/academico/calendario}"
+                   class="px-4 py-2 border border-slate-300 text-xs sm:text-sm font-medium rounded-lg text-slate-700 bg-white hover:bg-slate-50">
+                    Cancelar
+                </a>
+                <button type="submit"
+                        class="px-5 py-2 border border-transparent text-xs sm:text-sm font-semibold rounded-lg text-white bg-emerald-700 hover:bg-emerald-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition">
+                    <span th:text="${isEdit == true} ? 'Guardar Cambios' : 'Registrar Fecha'">Guardar</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

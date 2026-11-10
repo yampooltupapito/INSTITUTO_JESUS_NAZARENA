@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+<aside th:fragment="sidebar" id="app-sidebar" class="bg-slate-900 text-slate-300 w-64 min-h-screen flex flex-col flex-shrink-0 transition-transform duration-200 ease-in-out">
+    <!-- Encabezado / Logo Institucional -->
+    <div class="p-5 border-b border-slate-800 flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-full bg-emerald-700 text-white flex items-center justify-center font-bold text-lg shadow-md border-2 border-amber-400 flex-shrink-0">
+            JN
+        </div>
+        <div class="overflow-hidden">
+            <h2 class="text-xs font-bold text-white uppercase tracking-wider truncate" th:text="#{app.nombre}">
+                I.E. Jesús Nazareno
+            </h2>
+            <p class="text-[10px] text-emerald-400 font-medium truncate uppercase" th:text="#{app.descripcion}">
+                Control de Asistencia
+            </p>
+        </div>
+    </div>
+
+    <!-- Navegación con Seguridad Visual por Roles/Permisos -->
+    <nav class="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto">
+        <!-- Dashboard -->
+        <a th:href="@{/dashboard}"
+           sec:authorize="hasAuthority('DASHBOARD_VER')"
+           th:classappend="${currentMenu == 'dashboard'} ? 'bg-emerald-700 text-white font-semibold' : 'text-slate-300 hover:bg-slate-800 hover:text-white'"
+           class="flex items-center px-3.5 py-2.5 rounded-lg text-sm transition-colors duration-150 group">
+            <svg class="w-5 h-5 mr-3 flex-shrink-0 text-amber-400 group-hover:text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+            </svg>
+            <span th:text="#{menu.dashboard}">Dashboard</span>
+        </a>
+
+        <!-- Separador de Módulos Escolares -->
+        <div class="pt-3 pb-1 px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+            Gestión Escolar
+        </div>
+
+        <!-- Gestión Académica -->
+        <div class="pt-3 pb-1 px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider"
+             sec:authorize="hasAuthority('ACADEMICO_VER')">
+            <span th:text="#{menu.academico}">Gestión Académica</span>
+        </div>
+
+        <!-- Años Escolares -->
+        <a th:href="@{/academico/anios}"
+           sec:authorize="hasAuthority('ACADEMICO_VER')"
+           th:classappend="${currentMenu == 'anios'} ? 'bg-emerald-700 text-white font-semibold' : 'text-slate-300 hover:bg-slate-800 hover:text-white'"
+           class="flex items-center px-3.5 py-2.5 rounded-lg text-sm transition-colors duration-150 group">
+            <svg class="w-5 h-5 mr-3 flex-shrink-0 text-emerald-400 group-hover:text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+            <span th:text="#{menu.anios}">Años Escolares</span>
+        </a>
+
+        <!-- Grados -->
+        <a th:href="@{/academico/grados}"
+           sec:authorize="hasAuthority('ACADEMICO_VER')"
+           th:classappend="${currentMenu == 'grados'} ? 'bg-emerald-700 text-white font-semibold' : 'text-slate-300 hover:bg-slate-800 hover:text-white'"
+           class="flex items-center px-3.5 py-2.5 rounded-lg text-sm transition-colors duration-150 group">
+            <svg class="w-5 h-5 mr-3 flex-shrink-0 text-emerald-400 group-hover:text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+            </svg>
+            <span th:text="#{menu.grados}">Grados</span>
+        </a>
+
+        <!-- Secciones -->
+        <a th:href="@{/academico/secciones}"
+           sec:authorize="hasAuthority('ACADEMICO_VER')"
+           th:classappend="${currentMenu == 'secciones'} ? 'bg-emerald-700 text-white font-semibold' : 'text-slate-300 hover:bg-slate-800 hover:text-white'"
+           class="flex items-center px-3.5 py-2.5 rounded-lg text-sm transition-colors duration-150 group">
+            <svg class="w-5 h-5 mr-3 flex-shrink-0 text-emerald-400 group-hover:text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+            </svg>
+            <span th:text="#{menu.secciones}">Secciones</span>
+        </a>
+
+        <!-- Horarios de Asistencia -->
+        <a th:href="@{/academico/horarios}"
+           sec:authorize="hasAuthority('HORARIO_VER')"
+           th:classappend="${currentMenu == 'horarios'} ? 'bg-emerald-700 text-white font-semibold' : 'text-slate-300 hover:bg-slate-800 hover:text-white'"
+           class="flex items-center px-3.5 py-2.5 rounded-lg text-sm transition-colors duration-150 group">
+            <svg class="w-5 h-5 mr-3 flex-shrink-0 text-emerald-400 group-hover:text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span th:text="#{menu.horarios}">Horarios de Asistencia</span>
+        </a>
+
+        <!-- Calendario Escolar -->
+        <a th:href="@{/academico/calendario}"
+           sec:authorize="hasAuthority('CALENDARIO_VER')"
+           th:classappend="${currentMenu == 'calendario'} ? 'bg-emerald-700 text-white font-semibold' : 'text-slate-300 hover:bg-slate-800 hover:text-white'"
+           class="flex items-center px-3.5 py-2.5 rounded-lg text-sm transition-colors duration-150 group">
+            <svg class="w-5 h-5 mr-3 flex-shrink-0 text-emerald-400 group-hover:text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+            <span th:text="#{menu.calendario}">Calendario Escolar</span>
+        </a>
+
+        <!-- Separador de Alumnado -->
+        <div class="pt-3 pb-1 px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+            Alumnado y Matrícula
+        </div>
+
+        <!-- Estudiantes -->
+        <a th:href="@{/estudiantes}"
+           sec:authorize="hasAuthority('ESTUDIANTE_VER')"
+           th:classappend="${currentMenu == 'estudiantes'} ? 'bg-emerald-700 text-white font-semibold' : 'text-slate-300 hover:bg-slate-800 hover:text-white'"
+           class="flex items-center px-3.5 py-2.5 rounded-lg text-sm transition-colors duration-150 group">
+            <svg class="w-5 h-5 mr-3 flex-shrink-0 text-emerald-400 group-hover:text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14c4 0 6-2 6-5s-2-5-6-5-6 2-6 5 2 5 6 5zm0 2c-5 0-9 3-9 6v1h18v-1c0-3-4-6-9-6z"></path>
+            </svg>
+            <span th:text="#{menu.students}">Estudiantes</span>
+        </a>
+
+        <!-- Matrículas -->
+        <a th:href="@{/matriculas}"
+           sec:authorize="hasAuthority('MATRICULA_VER')"
+           th:classappend="${currentMenu == 'matriculas'} ? 'bg-emerald-700 text-white font-semibold' : 'text-slate-300 hover:bg-slate-800 hover:text-white'"
+           class="flex items-center px-3.5 py-2.5 rounded-lg text-sm transition-colors duration-150 group">
+            <svg class="w-5 h-5 mr-3 flex-shrink-0 text-emerald-400 group-hover:text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            <span th:text="#{menu.enrollments}">Matrículas</span>
+        </a>
+
+        <!-- Personal -->
+        <a th:href="@{/personal}"
+           sec:authorize="hasAuthority('PERSONAL_VER')"
+           th:classappend="${currentMenu == 'personal'} ? 'bg-emerald-700 text-white font-semibold' : 'text-slate-300 hover:bg-slate-800 hover:text-white'"
+           class="flex items-center px-3.5 py-2.5 rounded-lg text-sm transition-colors duration-150 group">
+            <svg class="w-5 h-5 mr-3 flex-shrink-0 text-emerald-400 group-hover:text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+            </svg>
+            <span th:text="#{menu.personal}">Personal</span>
+        </a>
+
+        <!-- Apoderados -->
+        <a th:href="@{/apoderados}"
+           sec:authorize="hasAuthority('APODERADO_VER')"
+           th:classappend="${currentMenu == 'apoderados'} ? 'bg-emerald-700 text-white font-semibold' : 'text-slate-300 hover:bg-slate-800 hover:text-white'"
+           class="flex items-center px-3.5 py-2.5 rounded-lg text-sm transition-colors duration-150 group">
+            <svg class="w-5 h-5 mr-3 flex-shrink-0 text-emerald-400 group-hover:text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+            </svg>
+            <span th:text="#{menu.apoderados}">Apoderados</span>
+        </a>
+
+        <!-- Separador de Asistencia -->
+        <div class="pt-3 pb-1 px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+            Control Diario
+        </div>
+
+        <!-- Asistencia -->
+        <a th:href="@{/asistencias}"
+           sec:authorize="hasAuthority('ASISTENCIA_VER') or hasAuthority('ASISTENCIA_REGISTRAR')"
+           th:classappend="${currentMenu == 'asistencias'} ? 'bg-emerald-700 text-white font-semibold' : 'text-slate-300 hover:bg-slate-800 hover:text-white'"
+           class="flex items-center px-3.5 py-2.5 rounded-lg text-sm transition-colors duration-150 group">
+            <svg class="w-5 h-5 mr-3 flex-shrink-0 text-amber-400 group-hover:text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+            </svg>
+            <span th:text="#{menu.attendance}">Asistencia</span>
+        </a>
+
+        <!-- Justificaciones -->
+        <a th:href="@{/justificaciones}"
+           sec:authorize="hasAuthority('JUSTIFICACION_VER')"
+           th:classappend="${currentMenu == 'justificaciones'} ? 'bg-emerald-700 text-white font-semibold' : 'text-slate-300 hover:bg-slate-800 hover:text-white'"
+           class="flex items-center px-3.5 py-2.5 rounded-lg text-sm transition-colors duration-150 group">
+            <svg class="w-5 h-5 mr-3 flex-shrink-0 text-amber-400 group-hover:text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+            </svg>
+            <span th:text="#{menu.justifications}">Justificaciones</span>
+        </a>
+
+        <!-- Alertas de Asistencia -->
+        <a th:href="@{/alertas}"
+           sec:authorize="hasAuthority('ALERTA_VER')"
+           th:classappend="${currentMenu == 'alertas'} ? 'bg-emerald-700 text-white font-semibold' : 'text-slate-300 hover:bg-slate-800 hover:text-white'"
+           class="flex items-center px-3.5 py-2.5 rounded-lg text-sm transition-colors duration-150 group">
+            <svg class="w-5 h-5 mr-3 flex-shrink-0 text-amber-400 group-hover:text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+            <span th:text="#{menu.alertas}">Alertas de Asistencia</span>
+        </a>
+
+        <!-- Separador de Administración -->
+        <div class="pt-3 pb-1 px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider"
+             sec:authorize="hasAuthority('USUARIO_VER') or hasRole('ADMIN') or hasAuthority('REPORTE_ASISTENCIA')">
+            Sistema
+        </div>
+
+        <!-- Usuarios -->
+        <a th:href="@{/usuarios}"
+           sec:authorize="hasAuthority('USUARIO_VER')"
+           th:classappend="${currentMenu == 'usuarios'} ? 'bg-emerald-700 text-white font-semibold' : 'text-slate-300 hover:bg-slate-800 hover:text-white'"
+           class="flex items-center px-3.5 py-2.5 rounded-lg text-sm transition-colors duration-150 group">
+            <svg class="w-5 h-5 mr-3 flex-shrink-0 text-red-400 group-hover:text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+            </svg>
+            <span th:text="#{menu.users}">Usuarios</span>
+        </a>
+
+        <!-- Roles -->
+        <a th:href="@{/roles}"
+           sec:authorize="hasAuthority('USUARIO_VER')"
+           th:classappend="${currentMenu == 'roles'} ? 'bg-emerald-700 text-white font-semibold' : 'text-slate-300 hover:bg-slate-800 hover:text-white'"
+           class="flex items-center px-3.5 py-2.5 rounded-lg text-sm transition-colors duration-150 group">
+            <svg class="w-5 h-5 mr-3 flex-shrink-0 text-amber-400 group-hover:text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+            </svg>
+            <span th:text="#{menu.roles}">Roles</span>
+        </a>
+
+        <!-- Reportes -->
+        <a th:href="@{/reportes/asistencia}"
+           sec:authorize="hasAuthority('REPORTE_ASISTENCIA')"
+           th:classappend="${currentMenu == 'reportes'} ? 'bg-emerald-700 text-white font-semibold' : 'text-slate-300 hover:bg-slate-800 hover:text-white'"
+           class="flex items-center px-3.5 py-2.5 rounded-lg text-sm transition-colors duration-150 group">
+            <svg class="w-5 h-5 mr-3 flex-shrink-0 text-blue-400 group-hover:text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            <span th:text="#{menu.reports}">Reportes</span>
+        </a>
+
+        <!-- Importaciones Masivas -->
+        <a th:href="@{/importaciones}"
+           sec:authorize="hasAuthority('IMPORTACION_ESTUDIANTE') or hasAuthority('IMPORTACION_MATRICULA')"
+           th:classappend="${currentMenu == 'importaciones'} ? 'bg-emerald-700 text-white font-semibold' : 'text-slate-300 hover:bg-slate-800 hover:text-white'"
+           class="flex items-center px-3.5 py-2.5 rounded-lg text-sm transition-colors duration-150 group">
+            <svg class="w-5 h-5 mr-3 flex-shrink-0 text-cyan-400 group-hover:text-cyan-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+            </svg>
+            <span th:text="#{menu.importaciones}">Importaciones</span>
+        </a>
+
+        <!-- Auditoría del Sistema -->
+        <a th:href="@{/auditoria}"
+           sec:authorize="hasAuthority('AUDITORIA_VER')"
+           th:classappend="${currentMenu == 'auditoria'} ? 'bg-emerald-700 text-white font-semibold' : 'text-slate-300 hover:bg-slate-800 hover:text-white'"
+           class="flex items-center px-3.5 py-2.5 rounded-lg text-sm transition-colors duration-150 group">
+            <svg class="w-5 h-5 mr-3 flex-shrink-0 text-violet-400 group-hover:text-violet-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            <span th:text="#{menu.auditoria}">Auditoría</span>
+        </a>
+    </nav>
+
+    <!-- Versión y Estado -->
+    <div class="p-4 border-t border-slate-800 text-[11px] text-slate-500 flex justify-between items-center">
+        <span>SGE v1.0.0</span>
+        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-950 text-emerald-400 border border-emerald-800">
+            Activo
+        </span>
+    </div>
+</aside>
+</body>
+</html>

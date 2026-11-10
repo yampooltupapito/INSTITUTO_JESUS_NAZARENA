@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layouts/main :: layout('Alertas de Asistencia', 'alertas', ~{::#alertas-content})}">
+<head>
+    <title>Alertas de Asistencia</title>
+</head>
+<body>
+<div id="alertas-content" class="space-y-6">
+
+    <!-- Encabezado y Acciones -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-200">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900 tracking-tight flex items-center space-x-2">
+                <span>Alertas de Asistencia</span>
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1">
+                Detección y seguimiento de ausencias consecutivas, ausencias acumuladas y tardanzas reiteradas
+            </p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+            <!-- Botón Recalcular Alertas -->
+            <form sec:authorize="hasAuthority('ALERTA_CONFIGURAR') or hasAuthority('ALERTA_REVISAR')"
+                  th:action="@{/alertas/recalcular}" method="post" class="inline">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <button type="submit"
+                        onclick="return confirm('¿Está seguro de ejecutar la reevaluación de alertas para todos los estudiantes matriculados?');"
+                        class="inline-flex items-center px-3 py-2 border border-slate-300 text-xs sm:text-sm font-semibold rounded-lg text-slate-700 bg-white hover:bg-slate-50 shadow-sm transition">
+                    <svg class="w-4 h-4 mr-1.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    <span>Recalcular Alertas</span>
+                </button>
+            </form>
+
+            <!-- Botón Configuración de Umbrales -->
+            <a sec:authorize="hasAuthority('ALERTA_CONFIGURAR')"
+               th:href="@{/alertas/configuracion}"
+               class="inline-flex items-center px-4 py-2 border border-transparent text-xs sm:text-sm font-semibold rounded-lg text-white bg-emerald-700 hover:bg-emerald-800 shadow-sm transition">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+                <span>Configurar Umbrales</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Barra de Filtros -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+        <form method="get" th:action="@{/alertas}" class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
+            <!-- Búsqueda rápida -->
+            <div class="sm:col-span-4">
+                <label for="q" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">
+                    Buscar Estudiante
+                </label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </span>
+                    <input type="text" id="q" name="q" th:value="${q}"
+                           placeholder="DNI, nombres, apellidos o matrícula..."
+                           class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs sm:text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition"/>
+                </div>
+            </div>
+
+            <!-- Tipo de Alerta -->
+            <div class="sm:col-span-3">
+                <label for="tipo" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">
+                    Tipo de Alerta
+                </label>
+                <select id="tipo" name="tipo"
+                        class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs sm:text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition">
+                    <option value="" th:selected="${tipoSeleccionado == null}">Todos los tipos</option>
+                    <option th:each="t : ${tiposAlerta}"
+                            th:value="${t}"
+                            th:text="${t.descripcion}"
+                            th:selected="${tipoSeleccionado == t}">
+                        Ausencias Consecutivas
+                    </option>
+                </select>
+            </div>
+
+            <!-- Estado de Alerta -->
+            <div class="sm:col-span-3">
+                <label for="estado" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">
+                    Estado
+                </label>
+                <select id="estado" name="estado"
+                        class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs sm:text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition">
+                    <option value="" th:selected="${estadoSeleccionado == null}">Todos los estados</option>
+                    <option th:each="e : ${estadosAlerta}"
+                            th:value="${e}"
+                            th:text="${e.descripcion}"
+                            th:selected="${estadoSeleccionado == e}">
+                        Pendiente
+                    </option>
+                </select>
+            </div>
+
+            <!-- Año Escolar -->
+            <div class="sm:col-span-2">
+                <label for="anioEscolarId" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">
+                    Año Escolar
+                </label>
+                <select id="anioEscolarId" name="anioEscolarId"
+                        class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs sm:text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition">
+                    <option value="" th:selected="${anioEscolarId == null}">Todos</option>
+                    <option th:each="a : ${aniosEscolares}"
+                            th:value="${a.id}"
+                            th:text="${a.anio}"
+                            th:selected="${anioEscolarId == a.id}">
+                        2026
+                    </option>
+                </select>
+            </div>
+
+            <!-- Grado -->
+            <div class="sm:col-span-3">
+                <label for="gradoId" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">
+                    Grado
+                </label>
+                <select id="gradoId" name="gradoId"
+                        class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs sm:text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition">
+                    <option value="" th:selected="${gradoId == null}">Todos los grados</option>
+                    <option th:each="g : ${grados}"
+                            th:value="${g.id}"
+                            th:text="${g.nombre}"
+                            th:selected="${gradoId == g.id}">
+                        1° Grado
+                    </option>
+                </select>
+            </div>
+
+            <!-- Rango Fecha Detección Desde -->
+            <div class="sm:col-span-3">
+                <label for="fechaInicio" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">
+                    Detección Desde
+                </label>
+                <input type="date" id="fechaInicio" name="fechaInicio" th:value="${fechaInicio}"
+                       class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs sm:text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition"/>
+            </div>
+
+            <!-- Rango Fecha Detección Hasta -->
+            <div class="sm:col-span-3">
+                <label for="fechaFin" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">
+                    Detección Hasta
+                </label>
+                <input type="date" id="fechaFin" name="fechaFin" th:value="${fechaFin}"
+                       class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs sm:text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition"/>
+            </div>
+
+            <!-- Botones Filtrar y Limpiar -->
+            <div class="sm:col-span-3 flex space-x-2">
+                <button type="submit"
+                        class="flex-1 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-2 px-3 rounded-lg text-xs sm:text-sm transition flex items-center justify-center space-x-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                    </svg>
+                    <span>Filtrar</span>
+                </button>
+                <a th:href="@{/alertas}"
+                   class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2 px-3 rounded-lg text-xs sm:text-sm border border-slate-300 transition flex items-center justify-center">
+                    Limpiar
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tabla de Alertas -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-slate-200 text-left">
+                <thead class="bg-slate-50">
+                <tr>
+                    <th scope="col" class="px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider">
+                        Estudiante
+                    </th>
+                    <th scope="col" class="px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider">
+                        Grado / Sección
+                    </th>
+                    <th scope="col" class="px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider">
+                        Tipo de Alerta
+                    </th>
+                    <th scope="col" class="px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider text-center">
+                        Cantidad
+                    </th>
+                    <th scope="col" class="px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider">
+                        Periodo Evaluado
+                    </th>
+                    <th scope="col" class="px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider">
+                        Detección
+                    </th>
+                    <th scope="col" class="px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider text-center">
+                        Estado
+                    </th>
+                    <th scope="col" class="px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider text-right">
+                        Acciones
+                    </th>
+                </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 text-xs sm:text-sm">
+                <tr th:if="${#lists.isEmpty(alertas)}">
+                    <td colspan="8" class="px-6 py-12 text-center text-slate-400">
+                        <div class="flex flex-col items-center justify-center space-y-2">
+                            <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span class="font-medium">No se encontraron alertas de asistencia con los filtros seleccionados.</span>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr th:each="al : ${alertas}" class="hover:bg-slate-50 transition">
+                    <!-- Estudiante -->
+                    <td class="px-4 py-3">
+                        <div class="font-semibold text-slate-900" th:text="${al.estudianteNombreCompleto}">
+                            Pérez Gómez, Juan
+                        </div>
+                        <div class="text-xs text-slate-500 flex items-center space-x-2">
+                            <span th:text="'DNI: ' + ${al.estudianteDocumento}">DNI: 70123456</span>
+                            <span>•</span>
+                            <span th:text="${al.codigoMatricula}">MAT-2026-001</span>
+                        </div>
+                    </td>
+
+                    <!-- Grado / Sección -->
+                    <td class="px-4 py-3">
+                        <div class="text-slate-800 font-medium" th:text="${al.gradoNombre != null ? al.gradoNombre : '—'}">
+                            1° Primaria
+                        </div>
+                        <div class="text-xs text-slate-500" th:text="${al.seccionNombre != null ? 'Sección ' + al.seccionNombre : '—'}">
+                            Sección A
+                        </div>
+                    </td>
+
+                    <!-- Tipo de Alerta -->
+                    <td class="px-4 py-3">
+                        <span th:if="${al.tipo.name() == 'AUSENCIAS_CONSECUTIVAS'}"
+                              class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-rose-50 text-rose-800 border border-rose-200">
+                            Ausencias Consecutivas
+                        </span>
+                        <span th:if="${al.tipo.name() == 'AUSENCIAS_ACUMULADAS'}"
+                              class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+                            Ausencias Acumuladas
+                        </span>
+                        <span th:if="${al.tipo.name() == 'TARDANZAS_ACUMULADAS'}"
+                              class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-orange-50 text-orange-800 border border-orange-200">
+                            Tardanzas Acumuladas
+                        </span>
+                    </td>
+
+                    <!-- Cantidad -->
+                    <td class="px-4 py-3 text-center">
+                        <span class="inline-flex items-center justify-center px-2 py-1 rounded-full text-xs font-extrabold bg-slate-100 text-slate-800"
+                              th:text="${al.cantidad}">
+                            3
+                        </span>
+                    </td>
+
+                    <!-- Periodo Evaluado -->
+                    <td class="px-4 py-3 text-slate-600 text-xs">
+                        <span th:text="${#temporals.format(al.fechaInicioPeriodo, 'dd/MM/yyyy')}">01/03/2026</span>
+                        <span> al </span>
+                        <span th:text="${#temporals.format(al.fechaFinPeriodo, 'dd/MM/yyyy')}">10/03/2026</span>
+                    </td>
+
+                    <!-- Fecha Detección -->
+                    <td class="px-4 py-3 text-slate-600 text-xs"
+                        th:text="${#temporals.format(al.fechaDeteccion, 'dd/MM/yyyy')}">
+                        10/03/2026
+                    </td>
+
+                    <!-- Estado -->
+                    <td class="px-4 py-3 text-center">
+                        <span th:if="${al.estado.name() == 'PENDIENTE'}"
+                              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">
+                            PENDIENTE
+                        </span>
+                        <span th:if="${al.estado.name() == 'EN_REVISION'}"
+                              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-900 border border-blue-300">
+                            EN REVISIÓN
+                        </span>
+                        <span th:if="${al.estado.name() == 'RESUELTA'}"
+                              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-900 border border-emerald-300">
+                            RESUELTA
+                        </span>
+                    </td>
+
+                    <!-- Acciones -->
+                    <td class="px-4 py-3 text-right">
+                        <a th:href="@{/alertas/{id}(id=${al.id})}"
+                           class="inline-flex items-center px-2.5 py-1.5 text-xs font-semibold rounded-lg text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition">
+                            <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                            <span>Detalle</span>
+                        </a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginación -->
+        <div th:if="${page.totalPages > 1}"
+             class="px-4 py-3 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
+            <div>
+                Mostrando página <strong th:text="${page.number + 1}">1</strong> de <strong th:text="${page.totalPages}">1</strong>
+                (<span th:text="${page.totalElements}">0</span> alertas encontradas)
+            </div>
+            <div class="flex items-center space-x-1">
+                <a th:if="${page.hasPrevious()}"
+                   th:href="@{/alertas(page=${page.number - 1}, size=${page.size}, q=${q}, tipo=${tipoSeleccionado}, estado=${estadoSeleccionado}, anioEscolarId=${anioEscolarId}, gradoId=${gradoId}, seccionId=${seccionId}, fechaInicio=${fechaInicio}, fechaFin=${fechaFin})}"
+                   class="px-3 py-1.5 rounded border border-slate-300 bg-white hover:bg-slate-100 transition">
+                    Anterior
+                </a>
+                <span th:each="i : ${#numbers.sequence(0, page.totalPages - 1)}"
+                      th:if="${i >= page.number - 2 and i <= page.number + 2}">
+                    <a th:href="@{/alertas(page=${i}, size=${page.size}, q=${q}, tipo=${tipoSeleccionado}, estado=${estadoSeleccionado}, anioEscolarId=${anioEscolarId}, gradoId=${gradoId}, seccionId=${seccionId}, fechaInicio=${fechaInicio}, fechaFin=${fechaFin})}"
+                       th:text="${i + 1}"
+                       th:classappend="${i == page.number} ? 'bg-emerald-700 text-white font-bold border-emerald-700' : 'bg-white text-slate-700 hover:bg-slate-100 border-slate-300'"
+                       class="px-3 py-1.5 rounded border transition">
+                        1
+                    </a>
+                </span>
+                <a th:if="${page.hasNext()}"
+                   th:href="@{/alertas(page=${page.number + 1}, size=${page.size}, q=${q}, tipo=${tipoSeleccionado}, estado=${estadoSeleccionado}, anioEscolarId=${anioEscolarId}, gradoId=${gradoId}, seccionId=${seccionId}, fechaInicio=${fechaInicio}, fechaFin=${fechaFin})}"
+                   class="px-3 py-1.5 rounded border border-slate-300 bg-white hover:bg-slate-100 transition">
+                    Siguiente
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

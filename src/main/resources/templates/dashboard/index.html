@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layouts/main :: layout(#{dashboard.title}, 'dashboard', ~{::#dashboard-content})}">
+<head>
+    <title th:text="#{dashboard.title}">Panel principal</title>
+</head>
+<body>
+<div id="dashboard-content" class="space-y-6">
+
+    <!-- Encabezado de Bienvenida y Fecha Lima -->
+    <div class="bg-gradient-to-r from-emerald-800 to-emerald-950 rounded-2xl p-6 text-white shadow-md relative overflow-hidden border border-emerald-700/40">
+        <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-emerald-600/20 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <div class="inline-flex items-center space-x-2 px-2.5 py-1 rounded-full bg-emerald-700/60 text-amber-300 text-xs font-semibold mb-2 border border-emerald-600/40">
+                    <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                    <span th:text="#{app.nombre}">Institución Educativa Jesús Nazareno</span>
+                </div>
+                <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">
+                    ¡Bienvenido, <span sec:authentication="name" class="text-amber-300">Usuario</span>!
+                </h1>
+                <p class="text-emerald-200 text-sm mt-1 max-w-xl">
+                    Panel integral de control de asistencia, métricas del día y resúmenes institucionales calculados con datos reales.
+                </p>
+            </div>
+            <!-- Indicador de Fecha Actual Lima -->
+            <div class="bg-emerald-900/80 border border-emerald-600/50 rounded-xl p-4 flex items-center space-x-3.5 flex-shrink-0">
+                <div class="p-2.5 rounded-lg bg-emerald-700/60 text-amber-400">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <span class="text-[11px] uppercase tracking-wider text-emerald-300 block font-semibold">Fecha (America/Lima)</span>
+                    <span class="text-sm sm:text-base font-bold text-white capitalize" th:text="${resumen.fechaFormateada}">
+                        Viernes, 02 de Octubre de 2026
+                    </span>
+                    <span class="text-xs text-emerald-300/80 block" th:text="'Fecha corta: ' + ${resumen.fechaCorta}">02/10/2026</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Barra de Filtros Contextuales del Dashboard -->
+    <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+        <form th:action="@{/dashboard}" method="get" class="flex flex-col md:flex-row md:items-end gap-3">
+            <!-- Filtro Año Escolar -->
+            <div class="w-full md:w-1/4">
+                <label for="anioEscolarId" class="block text-xs font-semibold text-slate-600 mb-1">Año Escolar</label>
+                <select id="anioEscolarId" name="anioEscolarId"
+                        class="w-full text-xs rounded-lg border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 py-2">
+                    <option value="">-- Todos los años --</option>
+                    <option th:each="ae : ${aniosEscolares}"
+                            th:value="${ae.id}"
+                            th:text="${ae.nombre + (ae.activo ? ' (Activo)' : '')}"
+                            th:selected="${filtro.anioEscolarId == ae.id}">
+                        2026
+                    </option>
+                </select>
+            </div>
+
+            <!-- Filtro Grado -->
+            <div class="w-full md:w-1/4">
+                <label for="gradoId" class="block text-xs font-semibold text-slate-600 mb-1">Grado</label>
+                <select id="gradoId" name="gradoId"
+                        class="w-full text-xs rounded-lg border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 py-2">
+                    <option value="">-- Todos los grados --</option>
+                    <option th:each="g : ${grados}"
+                            th:value="${g.id}"
+                            th:text="${g.nombre}"
+                            th:selected="${filtro.gradoId == g.id}">
+                        1° Secundaria
+                    </option>
+                </select>
+            </div>
+
+            <!-- Filtro Sección -->
+            <div class="w-full md:w-1/4">
+                <label for="seccionId" class="block text-xs font-semibold text-slate-600 mb-1">Sección</label>
+                <select id="seccionId" name="seccionId"
+                        class="w-full text-xs rounded-lg border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 py-2">
+                    <option value="">-- Todas las secciones --</option>
+                    <option th:each="s : ${secciones}"
+                            th:value="${s.id}"
+                            th:text="${s.nombre}"
+                            th:selected="${filtro.seccionId == s.id}">
+                        A
+                    </option>
+                </select>
+            </div>
+
+            <!-- Botones Filtrar y Limpiar -->
+            <div class="flex items-center space-x-2 w-full md:w-1/4">
+                <button type="submit"
+                        class="flex-1 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold py-2 px-3 rounded-lg shadow-sm transition flex items-center justify-center space-x-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                    </svg>
+                    <span>Filtrar</span>
+                </button>
+                <a th:href="@{/dashboard}"
+                   class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold py-2 px-3 rounded-lg border border-slate-300 transition flex items-center justify-center">
+                    Limpiar
+                </a>
+            </div>
+        </form>
+
+        <!-- Indicador de alcance activo si existen filtros -->
+        <div th:if="${filtro.tieneFiltros()}" class="mt-3 pt-3 border-t border-slate-100 flex flex-wrap items-center gap-2 text-xs">
+            <span class="text-slate-500 font-medium">Ámbito activo:</span>
+            <span th:if="${resumen.anioEscolarNombre != null}" class="bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded-full font-medium"
+                  th:text="'Año: ' + ${resumen.anioEscolarNombre}">Año: 2026</span>
+            <span th:if="${resumen.gradoNombre != null}" class="bg-blue-50 text-blue-800 border border-blue-200 px-2 py-0.5 rounded-full font-medium"
+                  th:text="'Grado: ' + ${resumen.gradoNombre}">Grado: 1° Sec</span>
+            <span th:if="${resumen.seccionNombre != null}" class="bg-purple-50 text-purple-800 border border-purple-200 px-2 py-0.5 rounded-full font-medium"
+                  th:text="'Sección: ' + ${resumen.seccionNombre}">Sección: A</span>
+        </div>
+    </div>
+
+    <!-- Aviso si hoy NO es día lectivo -->
+    <div th:if="${!resumen.esDiaLectivo}" class="bg-amber-50 border-l-4 border-amber-500 rounded-r-xl p-4 shadow-sm flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="p-2 rounded-lg bg-amber-100 text-amber-700">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+            </div>
+            <div>
+                <h3 class="text-sm font-bold text-amber-900" th:text="${resumen.mensajeDiaLectivo != null ? resumen.mensajeDiaLectivo : 'Hoy no es un día lectivo.'}">
+                    Hoy no es un día lectivo.
+                </h3>
+                <p class="text-xs text-amber-700 mt-0.5">
+                    No corresponde el control de asistencia para esta jornada en el calendario escolar. Los indicadores se calculan sin considerar ausencias masivas.
+                </p>
+            </div>
+        </div>
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-200 text-amber-900">
+            NO LECTIVO
+        </span>
+    </div>
+
+    <!-- Sección de Tarjetas de Indicadores Principales con DATOS REALES -->
+    <div>
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-bold text-slate-800 flex items-center space-x-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-600 inline-block"></span>
+                <span>Indicadores Principales</span>
+            </h2>
+            <span class="text-xs text-slate-500 font-medium">Métricas de la jornada actual</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <!-- 1. Estudiantes Activos -->
+            <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-500" th:text="#{dashboard.students}">
+                        Estudiantes activos
+                    </span>
+                    <div class="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center border border-emerald-100">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="mt-3 flex items-baseline justify-between">
+                    <div class="text-3xl font-extrabold text-slate-900" th:text="${resumen.totalEstudiantes}">0</div>
+                    <span class="text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">Padrón</span>
+                </div>
+                <p class="mt-2 text-xs text-slate-400">Total de alumnos activos registrados</p>
+            </div>
+
+            <!-- 2. Matrículas Activas -->
+            <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-500" th:text="#{dashboard.enrollments}">
+                        Matrículas activas
+                    </span>
+                    <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center border border-blue-100">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="mt-3 flex items-baseline justify-between">
+                    <div class="text-3xl font-extrabold text-slate-900" th:text="${resumen.totalMatriculas}">0</div>
+                    <span class="text-xs font-medium text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200"
+                          th:text="${resumen.totalRegistrosHoy} + ' reg.'">0 reg.</span>
+                </div>
+                <div class="mt-2 text-xs text-slate-500 flex justify-between">
+                    <span>Esperados: <strong th:text="${resumen.esperadosHoy}">0</strong></span>
+                    <span class="text-amber-600 font-semibold" th:if="${resumen.pendientesHoy > 0}"
+                          th:text="${resumen.pendientesHoy} + ' pend.'">0 pend.</span>
+                </div>
+            </div>
+
+            <!-- 3. Porcentaje de Asistencia del Día -->
+            <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-500" th:text="#{dashboard.porcentaje}">
+                        % Asistencia hoy
+                    </span>
+                    <div class="w-9 h-9 rounded-lg bg-teal-50 text-teal-700 flex items-center justify-center border border-teal-100">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="mt-3 flex items-baseline justify-between">
+                    <div class="text-3xl font-extrabold text-emerald-800" th:text="${resumen.porcentajeAsistenciaFormatted}">0.0%</div>
+                    <span class="text-xs font-medium text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200"
+                          th:text="${resumen.asistenciaEfectiva} + '/' + ${resumen.totalRegistrosHoy}">0/0</span>
+                </div>
+                <!-- Barra de Progreso Visual -->
+                <div class="w-full bg-slate-100 rounded-full h-2 mt-3 overflow-hidden">
+                    <div class="bg-emerald-600 h-2 rounded-full transition-all duration-500"
+                         th:style="'width: ' + ${resumen.porcentajeAsistencia} + '%;'"></div>
+                </div>
+            </div>
+
+            <!-- 4. Justificaciones Pendientes -->
+            <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-500" th:text="#{dashboard.justifications}">
+                        Justificaciones
+                    </span>
+                    <div class="w-9 h-9 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center border border-purple-100">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="mt-3 flex items-baseline justify-between">
+                    <div class="text-3xl font-extrabold text-purple-700" th:text="${resumen.justificacionesPendientes}">0</div>
+                    <span class="text-xs font-medium text-purple-700 bg-purple-100 px-2 py-0.5 rounded-full">Pendientes</span>
+                </div>
+                <div class="mt-2 text-xs">
+                    <a sec:authorize="hasAuthority('JUSTIFICACION_VER')"
+                       th:href="@{/justificaciones(estado='PENDIENTE')}"
+                       class="text-purple-700 hover:text-purple-900 font-semibold inline-flex items-center space-x-1">
+                        <span>Ver solicitudes</span>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </a>
+                    <span sec:authorize="!hasAuthority('JUSTIFICACION_VER')" class="text-slate-400">En espera</span>
+                </div>
+            </div>
+
+            <!-- 5. Alertas Pendientes -->
+            <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                        Alertas
+                    </span>
+                    <div class="w-9 h-9 rounded-lg bg-rose-50 text-rose-700 flex items-center justify-center border border-rose-100">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="mt-3 flex items-baseline justify-between">
+                    <div class="text-3xl font-extrabold text-rose-700" th:text="${resumen.totalAlertasPendientes}">0</div>
+                    <span class="text-xs font-medium text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full">Atención</span>
+                </div>
+                <div class="mt-2 text-xs">
+                    <a sec:authorize="hasAuthority('ALERTA_VER')"
+                       th:href="@{/alertas(estado='PENDIENTE')}"
+                       class="text-rose-700 hover:text-rose-900 font-semibold inline-flex items-center space-x-1">
+                        <span>Ver alertas</span>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </a>
+                    <span sec:authorize="!hasAuthority('ALERTA_VER')" class="text-slate-400">Por revisar</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fila de Estados de Asistencia Hoy (Categorías estrictamente separadas) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
+            <!-- Presentes Hoy -->
+            <div class="bg-emerald-50/60 rounded-xl p-4 border border-emerald-200">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-emerald-800 uppercase tracking-wider flex items-center space-x-1.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
+                        <span th:text="#{dashboard.present}">Presentes hoy</span>
+                    </span>
+                    <span class="text-xs font-bold text-emerald-700 bg-white px-2 py-0.5 rounded shadow-sm"
+                          th:text="${resumen.totalRegistrosHoy > 0 ? #numbers.formatDecimal(resumen.presentesHoy * 100.0 / resumen.totalRegistrosHoy, 1, 1) + '%' : '0.0%'}">0%</span>
+                </div>
+                <div class="mt-2 text-2xl font-extrabold text-emerald-900" th:text="${resumen.presentesHoy}">0</div>
+                <p class="text-[11px] text-emerald-700/80 mt-1">Ingreso puntual registrado</p>
+            </div>
+
+            <!-- Tardanzas Hoy -->
+            <div class="bg-amber-50/60 rounded-xl p-4 border border-amber-200">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-amber-800 uppercase tracking-wider flex items-center space-x-1.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                        <span th:text="#{dashboard.late}">Tardanzas hoy</span>
+                    </span>
+                    <span class="text-xs font-bold text-amber-700 bg-white px-2 py-0.5 rounded shadow-sm"
+                          th:text="${resumen.totalRegistrosHoy > 0 ? #numbers.formatDecimal(resumen.tardanzasHoy * 100.0 / resumen.totalRegistrosHoy, 1, 1) + '%' : '0.0%'}">0%</span>
+                </div>
+                <div class="mt-2 text-2xl font-extrabold text-amber-900" th:text="${resumen.tardanzasHoy}">0</div>
+                <p class="text-[11px] text-amber-700/80 mt-1">Ingreso con retraso de tolerancia</p>
+            </div>
+
+            <!-- Ausentes Hoy -->
+            <div class="bg-red-50/60 rounded-xl p-4 border border-red-200">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-red-800 uppercase tracking-wider flex items-center space-x-1.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-red-600"></span>
+                        <span th:text="#{dashboard.absent}">Ausentes hoy</span>
+                    </span>
+                    <span class="text-xs font-bold text-red-700 bg-white px-2 py-0.5 rounded shadow-sm"
+                          th:text="${resumen.totalRegistrosHoy > 0 ? #numbers.formatDecimal(resumen.ausentesHoy * 100.0 / resumen.totalRegistrosHoy, 1, 1) + '%' : '0.0%'}">0%</span>
+                </div>
+                <div class="mt-2 text-2xl font-extrabold text-red-900" th:text="${resumen.ausentesHoy}">0</div>
+                <p class="text-[11px] text-red-700/80 mt-1">Faltas sin registro de asistencia</p>
+            </div>
+
+            <!-- Justificados Hoy (Categoría Diferenciada e Independiente) -->
+            <div class="bg-purple-50/60 rounded-xl p-4 border border-purple-200">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-purple-800 uppercase tracking-wider flex items-center space-x-1.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-purple-600"></span>
+                        <span th:text="#{dashboard.justificados}">Justificados hoy</span>
+                    </span>
+                    <span class="text-xs font-bold text-purple-700 bg-white px-2 py-0.5 rounded shadow-sm"
+                          th:text="${resumen.totalRegistrosHoy > 0 ? #numbers.formatDecimal(resumen.justificadosHoy * 100.0 / resumen.totalRegistrosHoy, 1, 1) + '%' : '0.0%'}">0%</span>
+                </div>
+                <div class="mt-2 text-2xl font-extrabold text-purple-900" th:text="${resumen.justificadosHoy}">0</div>
+                <p class="text-[11px] text-purple-700/80 mt-1">Inasistencias justificadas formalmente</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sección de Tendencia de los Últimos 7 Días -->
+    <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+            <div>
+                <h3 class="text-sm font-bold text-slate-800 flex items-center space-x-2">
+                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+                    </svg>
+                    <span th:text="#{dashboard.tendencia}">Tendencia de asistencia (Últimos 7 días)</span>
+                </h3>
+                <p class="text-xs text-slate-500 mt-0.5">Evolución diaria de asistencia efectiva (% de presentes y tardanzas sobre total)</p>
+            </div>
+            <div class="flex items-center space-x-3 text-xs">
+                <span class="flex items-center space-x-1"><span class="w-2.5 h-2.5 rounded bg-emerald-500 inline-block"></span><span>Presentes</span></span>
+                <span class="flex items-center space-x-1"><span class="w-2.5 h-2.5 rounded bg-amber-400 inline-block"></span><span>Tardanzas</span></span>
+                <span class="flex items-center space-x-1"><span class="w-2.5 h-2.5 rounded bg-red-400 inline-block"></span><span>Ausentes</span></span>
+                <span class="flex items-center space-x-1"><span class="w-2.5 h-2.5 rounded bg-purple-400 inline-block"></span><span>Justificados</span></span>
+            </div>
+        </div>
+
+        <!-- Visualización Gráfica Responsiva de Tendencia Diaria -->
+        <div class="grid grid-cols-7 gap-2 pt-4">
+            <div th:each="dia : ${resumen.tendenciaDias}"
+                 class="flex flex-col items-center bg-slate-50/80 rounded-xl p-2.5 border border-slate-100 hover:border-emerald-200 transition">
+                <span class="text-xs font-bold text-slate-700 capitalize" th:text="${dia.diaSemana}">Lun</span>
+                <span class="text-[10px] text-slate-400 mb-2" th:text="${dia.fechaFormatted}">01/10</span>
+
+                <!-- Barra Vertical Visual con proporción CSS -->
+                <div class="w-full bg-slate-200 rounded-lg h-24 flex flex-col justify-end p-0.5 overflow-hidden">
+                    <div th:if="${dia.total > 0}"
+                         class="w-full bg-emerald-600 rounded flex items-center justify-center text-[10px] text-white font-bold transition-all duration-300"
+                         th:style="'height: ' + (${dia.porcentajeAsistencia > 15 ? dia.porcentajeAsistencia : 15}) + '%;'">
+                        <span th:text="${dia.porcentajeFormatted}">0%</span>
+                    </div>
+                    <div th:if="${dia.total == 0}" class="h-full flex items-center justify-center text-[10px] text-slate-400">
+                        -
+                    </div>
+                </div>
+
+                <!-- Detalle numérico del día -->
+                <div class="mt-2 text-center w-full">
+                    <span class="text-xs font-bold text-slate-800 block" th:text="${dia.total} + ' reg.'">0 reg.</span>
+                    <div class="flex justify-center space-x-1 text-[10px] mt-0.5">
+                        <span class="text-emerald-700 font-semibold" title="Presentes" th:text="'P:' + ${dia.presentes}">P:0</span>
+                        <span class="text-amber-700 font-semibold" title="Tardanzas" th:text="'T:' + ${dia.tardanzas}">T:0</span>
+                        <span class="text-red-700 font-semibold" title="Ausentes" th:text="'A:' + ${dia.ausentes}">A:0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sección de Resúmenes Agrupados: Grado y Sección -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- 1. Resumen por Grado -->
+        <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-sm font-bold text-slate-800 flex items-center space-x-2">
+                        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                        </svg>
+                        <span th:text="#{dashboard.por-grado}">Resumen por grado (Hoy)</span>
+                    </h3>
+                    <span class="text-xs text-slate-400 font-medium" th:text="${resumen.resumenGrados.size()} + ' grados'">0 grados</span>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-xs text-left divide-y divide-slate-200">
+                        <thead class="bg-slate-50 text-slate-600 font-semibold uppercase tracking-wider">
+                        <tr>
+                            <th class="py-2.5 px-3">Grado</th>
+                            <th class="py-2.5 px-2 text-center text-emerald-700">Pres.</th>
+                            <th class="py-2.5 px-2 text-center text-amber-700">Tard.</th>
+                            <th class="py-2.5 px-2 text-center text-red-700">Aus.</th>
+                            <th class="py-2.5 px-2 text-center text-purple-700">Just.</th>
+                            <th class="py-2.5 px-2 text-center">Total</th>
+                            <th class="py-2.5 px-2 text-right">% Asist.</th>
+                        </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                        <tr th:each="rg : ${resumen.resumenGrados}" class="hover:bg-slate-50/70 transition">
+                            <td class="py-2 px-3 font-semibold text-slate-800" th:text="${rg.gradoNombre}">1° Secundaria</td>
+                            <td class="py-2 px-2 text-center font-medium text-emerald-700" th:text="${rg.presentes}">0</td>
+                            <td class="py-2 px-2 text-center font-medium text-amber-700" th:text="${rg.tardanzas}">0</td>
+                            <td class="py-2 px-2 text-center font-medium text-red-700" th:text="${rg.ausentes}">0</td>
+                            <td class="py-2 px-2 text-center font-medium text-purple-700" th:text="${rg.justificados}">0</td>
+                            <td class="py-2 px-2 text-center font-bold text-slate-900" th:text="${rg.total}">0</td>
+                            <td class="py-2 px-2 text-right">
+                                <span class="font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded text-[11px]"
+                                      th:text="${rg.porcentajeFormatted}">0.0%</span>
+                            </td>
+                        </tr>
+                        <tr th:if="${resumen.resumenGrados.isEmpty()}">
+                            <td colspan="7" class="py-4 text-center text-slate-400 italic" th:text="#{dashboard.sin-datos}">
+                                No existen registros para el periodo seleccionado.
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Resumen por Sección -->
+        <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-sm font-bold text-slate-800 flex items-center space-x-2">
+                        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                        </svg>
+                        <span th:text="#{dashboard.por-seccion}">Resumen por sección (Hoy)</span>
+                    </h3>
+                    <span class="text-xs text-slate-400 font-medium" th:text="${resumen.resumenSecciones.size()} + ' secciones'">0 secciones</span>
+                </div>
+
+                <div class="overflow-x-auto max-h-64 overflow-y-auto">
+                    <table class="min-w-full text-xs text-left divide-y divide-slate-200">
+                        <thead class="bg-slate-50 text-slate-600 font-semibold uppercase tracking-wider sticky top-0">
+                        <tr>
+                            <th class="py-2.5 px-3">Grado / Sec.</th>
+                            <th class="py-2.5 px-2 text-center text-emerald-700">Pres.</th>
+                            <th class="py-2.5 px-2 text-center text-amber-700">Tard.</th>
+                            <th class="py-2.5 px-2 text-center text-red-700">Aus.</th>
+                            <th class="py-2.5 px-2 text-center text-purple-700">Just.</th>
+                            <th class="py-2.5 px-2 text-center">Total</th>
+                            <th class="py-2.5 px-2 text-right">% Asist.</th>
+                        </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                        <tr th:each="rs : ${resumen.resumenSecciones}" class="hover:bg-slate-50/70 transition">
+                            <td class="py-2 px-3 font-semibold text-slate-800"
+                                th:text="${rs.gradoNombre} + ' &quot;' + ${rs.seccionNombre} + '&quot;'">1° Sec "A"</td>
+                            <td class="py-2 px-2 text-center font-medium text-emerald-700" th:text="${rs.presentes}">0</td>
+                            <td class="py-2 px-2 text-center font-medium text-amber-700" th:text="${rs.tardanzas}">0</td>
+                            <td class="py-2 px-2 text-center font-medium text-red-700" th:text="${rs.ausentes}">0</td>
+                            <td class="py-2 px-2 text-center font-medium text-purple-700" th:text="${rs.justificados}">0</td>
+                            <td class="py-2 px-2 text-center font-bold text-slate-900" th:text="${rs.total}">0</td>
+                            <td class="py-2 px-2 text-right">
+                                <span class="font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded text-[11px]"
+                                      th:text="${rs.porcentajeFormatted}">0.0%</span>
+                            </td>
+                        </tr>
+                        <tr th:if="${resumen.resumenSecciones.isEmpty()}">
+                            <td colspan="7" class="py-4 text-center text-slate-400 italic" th:text="#{dashboard.sin-datos}">
+                                No existen registros para el periodo seleccionado.
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sección de Accesos Rápidos y Seguridad -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Accesos Rápidos a Módulos con sec:authorize -->
+        <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div>
+                <h3 class="text-sm font-bold text-slate-800 mb-3 flex items-center space-x-2">
+                    <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                    <span th:text="#{dashboard.accesos-rapidos}">Accesos rápidos a módulos</span>
+                </h3>
+                <p class="text-xs text-slate-500 mb-4">Atajos directos según sus privilegios asignados en el sistema:</p>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <!-- Registrar Asistencia -->
+                    <a sec:authorize="hasAuthority('ASISTENCIA_REGISTRAR')"
+                       th:href="@{/asistencias/registrar}"
+                       class="flex items-center space-x-2.5 p-3 rounded-lg border border-emerald-200 bg-emerald-50/50 hover:bg-emerald-100/60 text-emerald-900 transition">
+                        <div class="p-1.5 rounded bg-emerald-600 text-white">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold block">Tomar Asistencia</span>
+                            <span class="text-[10px] text-emerald-700">Registro diario por sección</span>
+                        </div>
+                    </a>
+
+                    <!-- Reporte de Asistencia -->
+                    <a sec:authorize="hasAuthority('REPORTE_ASISTENCIA')"
+                       th:href="@{/reportes/asistencia}"
+                       class="flex items-center space-x-2.5 p-3 rounded-lg border border-blue-200 bg-blue-50/50 hover:bg-blue-100/60 text-blue-900 transition">
+                        <div class="p-1.5 rounded bg-blue-600 text-white">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold block">Reportes y PDF</span>
+                            <span class="text-[10px] text-blue-700">Descarga oficial OpenPDF</span>
+                        </div>
+                    </a>
+
+                    <!-- Justificaciones -->
+                    <a sec:authorize="hasAuthority('JUSTIFICACION_VER')"
+                       th:href="@{/justificaciones(estado='PENDIENTE')}"
+                       class="flex items-center space-x-2.5 p-3 rounded-lg border border-purple-200 bg-purple-50/50 hover:bg-purple-100/60 text-purple-900 transition">
+                        <div class="p-1.5 rounded bg-purple-600 text-white">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold block">Justificaciones</span>
+                            <span class="text-[10px] text-purple-700">Revisión de solicitudes</span>
+                        </div>
+                    </a>
+
+                    <!-- Estudiantes -->
+                    <a sec:authorize="hasAuthority('ESTUDIANTE_VER')"
+                       th:href="@{/estudiantes}"
+                       class="flex items-center space-x-2.5 p-3 rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-slate-100 text-slate-800 transition">
+                        <div class="p-1.5 rounded bg-slate-700 text-white">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold block">Padrón Alumnos</span>
+                            <span class="text-[10px] text-slate-500">Consulta de estudiantes</span>
+                        </div>
+                    </a>
+
+                    <!-- Matrículas -->
+                    <a sec:authorize="hasAuthority('MATRICULA_VER')"
+                       th:href="@{/matriculas}"
+                       class="flex items-center space-x-2.5 p-3 rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-slate-100 text-slate-800 transition sm:col-span-2">
+                        <div class="p-1.5 rounded bg-emerald-800 text-white">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold block">Gestión de Matrículas</span>
+                            <span class="text-[10px] text-slate-500">Padrón escolar por año lectivo</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            <div class="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                <span>Versión del Sistema: 1.0.0</span>
+                <span class="font-medium text-emerald-700">I.E. Jesús Nazareno</span>
+            </div>
+        </div>
+
+        <!-- Tarjeta de Estado del Sistema y Sesión -->
+        <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div>
+                <h3 class="text-sm font-bold text-slate-800 mb-3 flex items-center space-x-2">
+                    <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                    </svg>
+                    <span>Seguridad y Sesión de Usuario</span>
+                </h3>
+                <div class="divide-y divide-slate-100 text-xs">
+                    <div class="py-2.5 flex justify-between items-center">
+                        <span class="text-slate-500">Usuario autenticado:</span>
+                        <span class="font-bold text-slate-800" sec:authentication="name">usuario</span>
+                    </div>
+                    <div class="py-2.5 flex justify-between items-center">
+                        <span class="text-slate-500">Autoridades asignadas:</span>
+                        <span class="font-mono text-[11px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded" sec:authentication="principal.authorities">[ROLES/PERMISOS]</span>
+                    </div>
+                    <div class="py-2.5 flex justify-between items-center">
+                        <span class="text-slate-500">Zona horaria del sistema:</span>
+                        <span class="font-semibold text-slate-700">America/Lima (UTC-5)</span>
+                    </div>
+                    <div class="py-2.5 flex justify-between items-center">
+                        <span class="text-slate-500">Motor de Base de Datos:</span>
+                        <span class="inline-flex items-center text-emerald-700 font-semibold">
+                            <span class="w-2 h-2 bg-emerald-500 rounded-full mr-1.5"></span> PostgreSQL 14+
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
+                <span>Protección CSRF activa</span>
+                <span>Hibernate validate</span>
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layouts/main :: layout(#{estudiante.titulo.detalle}, 'estudiantes', ~{::#estudiante-detail-content})}">
+<head>
+    <title th:text="#{estudiante.titulo.detalle}">Ficha del Estudiante</title>
+</head>
+<body>
+<div id="estudiante-detail-content" class="max-w-4xl mx-auto space-y-6">
+
+    <!-- Encabezado con Migas de Pan y Acciones -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-3 border-b border-slate-200">
+        <div>
+            <nav class="flex text-xs text-slate-500 mb-1" aria-label="Breadcrumb">
+                <a th:href="@{/estudiantes}" class="hover:text-emerald-700">Estudiantes</a>
+                <span class="mx-2 text-slate-400">/</span>
+                <span class="text-slate-800 font-semibold" th:text="${estudiante.numeroDocumento}">77889900</span>
+            </nav>
+            <h1 class="text-2xl font-bold text-slate-900 tracking-tight flex items-center space-x-3">
+                <span th:text="${estudiante.nombres + ' ' + estudiante.apellidoPaterno + ' ' + estudiante.apellidoMaterno}">
+                    Carlos Eduardo Mendoza Flores
+                </span>
+                <span th:if="${estudiante.activo}"
+                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 mr-1.5"></span> Activo
+                </span>
+                <span th:unless="${estudiante.activo}"
+                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800 border border-red-200">
+                    <span class="w-1.5 h-1.5 rounded-full bg-red-600 mr-1.5"></span> Inactivo
+                </span>
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+                ID del Registro: <span class="font-mono font-medium text-slate-700" th:text="${estudiante.id}">1</span>
+            </p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+            <a th:href="@{/estudiantes}"
+               class="inline-flex items-center px-3.5 py-2 border border-slate-300 text-xs sm:text-sm font-medium rounded-lg text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-400 transition duration-150">
+                &larr; Volver
+            </a>
+
+            <!-- Botón Editar -->
+            <a sec:authorize="hasAuthority('ESTUDIANTE_EDITAR')"
+               th:href="@{/estudiantes/{id}/editar(id=${estudiante.id})}"
+               class="inline-flex items-center px-4 py-2 border border-transparent text-xs sm:text-sm font-semibold rounded-lg text-white bg-amber-600 hover:bg-amber-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition duration-150">
+                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                </svg>
+                <span>Editar Ficha</span>
+            </a>
+
+            <!-- Botón Activar / Desactivar (POST con CSRF) -->
+            <span sec:authorize="hasAuthority('ESTUDIANTE_EDITAR')" class="inline">
+                <form th:if="${estudiante.activo}"
+                      th:action="@{/estudiantes/{id}/desactivar(id=${estudiante.id})}"
+                      method="post"
+                      class="inline"
+                      onsubmit="return confirm('¿Está seguro de desactivar al estudiante? No se borrarán sus registros académicos.');">
+                    <button type="submit"
+                            class="inline-flex items-center px-3.5 py-2 border border-red-200 text-xs sm:text-sm font-medium rounded-lg text-red-700 bg-red-50 hover:bg-red-100 transition duration-150">
+                        Desactivar
+                    </button>
+                </form>
+                <form th:unless="${estudiante.activo}"
+                      th:action="@{/estudiantes/{id}/activar(id=${estudiante.id})}"
+                      method="post"
+                      class="inline"
+                      onsubmit="return confirm('¿Desea reactivar a este estudiante?');">
+                    <button type="submit"
+                            class="inline-flex items-center px-3.5 py-2 border border-emerald-200 text-xs sm:text-sm font-medium rounded-lg text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition duration-150">
+                        Activar
+                    </button>
+                </form>
+            </span>
+        </div>
+    </div>
+
+    <!-- Tarjetas de Información -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- Tarjeta: Datos de Identificación y Personales -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
+            <h2 class="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2.5 flex items-center space-x-2">
+                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg>
+                <span>Información Personal</span>
+            </h2>
+
+            <dl class="divide-y divide-slate-100 text-xs sm:text-sm">
+                <div class="py-2.5 flex justify-between">
+                    <dt class="font-medium text-slate-500">Tipo de Documento:</dt>
+                    <dd class="font-semibold text-slate-900" th:text="${estudiante.tipoDocumento}">DNI</dd>
+                </div>
+                <div class="py-2.5 flex justify-between">
+                    <dt class="font-medium text-slate-500">Número de Documento:</dt>
+                    <dd class="font-mono font-bold text-slate-900" th:text="${estudiante.numeroDocumento}">77889900</dd>
+                </div>
+                <div class="py-2.5 flex justify-between">
+                    <dt class="font-medium text-slate-500">Nombres:</dt>
+                    <dd class="font-medium text-slate-900" th:text="${estudiante.nombres}">Carlos Eduardo</dd>
+                </div>
+                <div class="py-2.5 flex justify-between">
+                    <dt class="font-medium text-slate-500">Apellido Paterno:</dt>
+                    <dd class="font-medium text-slate-900" th:text="${estudiante.apellidoPaterno}">Mendoza</dd>
+                </div>
+                <div class="py-2.5 flex justify-between">
+                    <dt class="font-medium text-slate-500">Apellido Materno:</dt>
+                    <dd class="font-medium text-slate-900" th:text="${estudiante.apellidoMaterno}">Flores</dd>
+                </div>
+                <div class="py-2.5 flex justify-between">
+                    <dt class="font-medium text-slate-500">Fecha de Nacimiento:</dt>
+                    <dd class="font-medium text-slate-900"
+                        th:text="${estudiante.fechaNacimiento != null ? #temporals.format(estudiante.fechaNacimiento, 'dd/MM/yyyy') : '-'}">
+                        15/05/2010
+                    </dd>
+                </div>
+                <div class="py-2.5 flex justify-between">
+                    <dt class="font-medium text-slate-500">Sexo:</dt>
+                    <dd class="font-medium text-slate-900" th:text="${estudiante.sexo}">MASCULINO</dd>
+                </div>
+            </dl>
+        </div>
+
+        <!-- Tarjeta: Datos de Contacto y Registro -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
+            <h2 class="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2.5 flex items-center space-x-2">
+                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                </svg>
+                <span>Contacto y Auditoría</span>
+            </h2>
+
+            <dl class="divide-y divide-slate-100 text-xs sm:text-sm">
+                <div class="py-2.5 flex justify-between">
+                    <dt class="font-medium text-slate-500">Teléfono:</dt>
+                    <dd class="font-mono text-slate-900" th:text="${estudiante.telefono ?: 'No registrado'}">987654321</dd>
+                </div>
+                <div class="py-2.5 flex justify-between">
+                    <dt class="font-medium text-slate-500">Correo Electrónico:</dt>
+                    <dd class="text-slate-900 truncate max-w-xs" th:text="${estudiante.correo ?: 'No registrado'}">carlos@correo.com</dd>
+                </div>
+                <div class="py-2.5 flex justify-between">
+                    <dt class="font-medium text-slate-500">Dirección:</dt>
+                    <dd class="text-slate-900 text-right max-w-xs" th:text="${estudiante.direccion ?: 'No registrada'}">Av. Los Incas 123</dd>
+                </div>
+                <div class="py-2.5 flex justify-between">
+                    <dt class="font-medium text-slate-500">Condición en Sistema:</dt>
+                    <dd class="font-semibold text-emerald-700">ESTUDIANTE REGISTRADO</dd>
+                </div>
+                <div class="py-2.5 flex justify-between">
+                    <dt class="font-medium text-slate-500">Fecha de Registro:</dt>
+                    <dd class="text-slate-700"
+                        th:text="${estudiante.createdAt != null ? #temporals.format(estudiante.createdAt, 'dd/MM/yyyy HH:mm') : '-'}">
+                        02/10/2026 14:30
+                    </dd>
+                </div>
+                <div class="py-2.5 flex justify-between">
+                    <dt class="font-medium text-slate-500">Última Actualización:</dt>
+                    <dd class="text-slate-700"
+                        th:text="${estudiante.updatedAt != null ? #temporals.format(estudiante.updatedAt, 'dd/MM/yyyy HH:mm') : '-'}">
+                        02/10/2026 14:30
+                    </dd>
+                </div>
+            </dl>
+        </div>
+
+    </div>
+
+    <!-- Sección: Padres y Apoderados -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-6 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-slate-50/50">
+            <div>
+                <h2 class="text-base font-bold text-slate-900 flex items-center space-x-2">
+                    <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                    <span>Padres y Apoderados Registrados</span>
+                </h2>
+                <p class="text-xs text-slate-500 mt-0.5">Personas responsables y contactos de emergencia del estudiante</p>
+            </div>
+
+            <div class="flex items-center space-x-2">
+                <a sec:authorize="hasAuthority('APODERADO_CREAR')"
+                   th:href="@{/estudiantes/{id}/apoderados/nuevo(id=${estudiante.id})}"
+                   class="inline-flex items-center px-3.5 py-2 border border-transparent text-xs sm:text-sm font-semibold rounded-lg text-white bg-emerald-700 hover:bg-emerald-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition duration-150">
+                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    <span>Asignar Apoderado</span>
+                </a>
+                <a sec:authorize="hasAuthority('APODERADO_CREAR')"
+                   th:href="@{/apoderados/nuevo(estudianteId=${estudiante.id})}"
+                   class="inline-flex items-center px-3 py-2 border border-slate-300 text-xs sm:text-sm font-medium rounded-lg text-slate-700 bg-white hover:bg-slate-50 transition duration-150">
+                    <span>+ Registrar Nuevo</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-slate-200 text-left text-xs sm:text-sm">
+                <thead class="bg-slate-50 text-slate-600 font-semibold uppercase tracking-wider text-[11px]">
+                    <tr>
+                        <th class="px-6 py-3">Apoderado</th>
+                        <th class="px-4 py-3">Parentesco</th>
+                        <th class="px-4 py-3">Contacto</th>
+                        <th class="px-4 py-3">Tipo / Prioridad</th>
+                        <th class="px-4 py-3">Vigencia</th>
+                        <th class="px-4 py-3">Estado</th>
+                        <th class="px-6 py-3 text-right">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-slate-700">
+                    <tr th:each="rel : ${apoderados}" class="hover:bg-slate-50/75 transition-colors">
+                        <td class="px-6 py-4">
+                            <a th:href="@{/apoderados/{id}(id=${rel.apoderadoId})}"
+                               class="font-semibold text-emerald-800 hover:underline block"
+                               th:text="${rel.apoderadoNombreCompleto}">
+                                María Elena Flores Ramos
+                            </a>
+                            <span class="text-xs text-slate-500 font-mono" th:text="${'DNI: ' + rel.apoderadoDocumento}">DNI: 12345678</span>
+                        </td>
+                        <td class="px-4 py-4">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800 border border-slate-200"
+                                  th:text="${rel.parentescoDescripcion}">
+                                Madre
+                            </span>
+                        </td>
+                        <td class="px-4 py-4 text-xs space-y-0.5">
+                            <div th:if="${rel.apoderadoTelefono != null and !rel.apoderadoTelefono.isBlank()}" class="flex items-center text-slate-700 font-mono">
+                                <svg class="w-3.5 h-3.5 mr-1 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                                </svg>
+                                <span th:text="${rel.apoderadoTelefono}">987654321</span>
+                            </div>
+                            <div th:if="${rel.apoderadoCorreo != null and !rel.apoderadoCorreo.isBlank()}" class="text-slate-500 truncate max-w-[180px]">
+                                <span th:text="${rel.apoderadoCorreo}">correo@ejemplo.com</span>
+                            </div>
+                        </td>
+                        <td class="px-4 py-4">
+                            <span th:if="${rel.esPrincipal and rel.activo}"
+                                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">
+                                <svg class="w-3 h-3 mr-1 text-amber-600 fill-current" viewBox="0 0 20 20">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                </svg>
+                                Principal
+                            </span>
+                            <span th:unless="${rel.esPrincipal and rel.activo}"
+                                  class="text-xs text-slate-400">
+                                Secundario
+                            </span>
+                        </td>
+                        <td class="px-4 py-4 text-xs text-slate-500">
+                            <div>Desde: <span class="font-medium text-slate-700" th:text="${#temporals.format(rel.fechaInicio, 'dd/MM/yyyy')}">01/03/2026</span></div>
+                            <div th:if="${rel.fechaFin != null}">Hasta: <span class="font-medium text-slate-700" th:text="${#temporals.format(rel.fechaFin, 'dd/MM/yyyy')}">31/12/2026</span></div>
+                        </td>
+                        <td class="px-4 py-4">
+                            <span th:if="${rel.activo}"
+                                  class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                Vigente
+                            </span>
+                            <span th:unless="${rel.activo}"
+                                  class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                                Inactivo
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-right space-x-1.5">
+                            <!-- Hacer Principal -->
+                            <form sec:authorize="hasAuthority('APODERADO_EDITAR')"
+                                  th:if="${rel.activo and !rel.esPrincipal}"
+                                  th:action="@{/estudiantes/{estId}/apoderados/{relId}/principal(estId=${estudiante.id}, relId=${rel.id})}"
+                                  method="post"
+                                  class="inline">
+                                <button type="submit"
+                                        title="Establecer como apoderado principal de contacto"
+                                        class="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded border border-amber-300 text-amber-800 bg-amber-50 hover:bg-amber-100 transition duration-150">
+                                    Hacer Principal
+                                </button>
+                            </form>
+
+                            <!-- Desactivar Relación -->
+                            <form sec:authorize="hasAuthority('APODERADO_EDITAR')"
+                                  th:if="${rel.activo}"
+                                  th:action="@{/estudiantes/{estId}/apoderados/{relId}/desactivar(estId=${estudiante.id}, relId=${rel.id})}"
+                                  method="post"
+                                  onsubmit="return confirm('¿Está seguro de desactivar la relación con este apoderado? Se conservará el historial.');"
+                                  class="inline">
+                                <button type="submit"
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded border border-red-200 text-red-700 bg-red-50 hover:bg-red-100 transition duration-150">
+                                    Desactivar
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(apoderados)}">
+                        <td colspan="7" class="px-6 py-8 text-center text-slate-400 text-xs sm:text-sm">
+                            <svg class="w-8 h-8 mx-auto text-slate-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            <span>No hay apoderados asignados a este estudiante actualmente.</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

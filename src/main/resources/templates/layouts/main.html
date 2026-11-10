@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:fragment="layout(pageTitle, currentMenu, content)">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle != null ? pageTitle + ' - ' + #messages.msg('app.nombre') : #messages.msg('app.nombre')}">I.E. Jesús Nazareno</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col antialiased">
+    <div class="flex flex-1 min-h-screen relative overflow-x-hidden">
+        <!-- Backdrop para sidebar móvil -->
+        <div id="sidebar-backdrop" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-30 hidden lg:hidden transition-opacity duration-200"></div>
+
+        <!-- Sidebar Reutilizable -->
+        <aside th:replace="~{fragments/sidebar :: sidebar}"></aside>
+
+        <!-- Contenedor Principal (Header + Alerts + Content + Footer) -->
+        <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+            <!-- Header Reutilizable -->
+            <header th:replace="~{fragments/header :: header}"></header>
+
+            <!-- Mensajes Flash / Alertas -->
+            <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+            <!-- Contenido Principal -->
+            <main class="flex-1 p-4 sm:p-6 lg:p-8">
+                <div th:replace="${content}">
+                    <!-- Contenido inyectado por cada vista -->
+                </div>
+            </main>
+
+            <!-- Footer Reutilizable -->
+            <footer th:replace="~{fragments/footer :: footer}"></footer>
+        </div>
+    </div>
+
+    <!-- Script mínimo para sidebar responsive -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const toggleBtn = document.getElementById('sidebar-toggle-btn');
+            const sidebar = document.getElementById('app-sidebar');
+            const backdrop = document.getElementById('sidebar-backdrop');
+
+            if (toggleBtn && sidebar) {
+                function closeSidebar() {
+                    sidebar.classList.add('-translate-x-full');
+                    if (backdrop) backdrop.classList.add('hidden');
+                }
+
+                function openSidebar() {
+                    sidebar.classList.remove('-translate-x-full');
+                    if (backdrop) backdrop.classList.remove('hidden');
+                }
+
+                toggleBtn.addEventListener('click', function () {
+                    if (sidebar.classList.contains('-translate-x-full')) {
+                        openSidebar();
+                    } else {
+                        closeSidebar();
+                    }
+                });
+
+                if (backdrop) {
+                    backdrop.addEventListener('click', closeSidebar);
+                }
+
+                function handleResize() {
+                    if (window.innerWidth >= 1024) {
+                        sidebar.classList.remove('-translate-x-full', 'fixed', 'inset-y-0', 'left-0', 'z-40');
+                        if (backdrop) backdrop.classList.add('hidden');
+                    } else {
+                        sidebar.classList.add('fixed', 'inset-y-0', 'left-0', 'z-40');
+                        sidebar.classList.add('-translate-x-full');
+                    }
+                }
+
+                window.addEventListener('resize', handleResize);
+                handleResize();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layouts/main :: layout('Detalle de Evento de Auditoría', 'auditoria', ~{::#auditoria-detail-content})}">
+<head>
+    <title>Detalle de Evento de Auditoría</title>
+</head>
+<body>
+<div id="auditoria-detail-content" class="space-y-6">
+
+    <!-- Encabezado con botón Volver -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200">
+        <div>
+            <div class="flex items-center gap-3">
+                <a th:href="@{/auditoria}"
+                   class="inline-flex items-center text-xs font-semibold text-slate-500 hover:text-slate-800 transition">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    Volver al listado
+                </a>
+            </div>
+            <h1 class="text-2xl font-bold text-slate-900 tracking-tight mt-1">
+                Evento de Auditoría #<span th:text="${evento.id}">1</span>
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+                Registro inmutable de trazabilidad generado automáticamente por el sistema.
+            </p>
+        </div>
+        <div>
+            <span th:if="${evento.resultado.name() == 'EXITO'}"
+                  class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                <svg class="w-3.5 h-3.5 mr-1 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                OPERACIÓN EXITOSA
+            </span>
+            <span th:unless="${evento.resultado.name() == 'EXITO'}"
+                  class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-800 border border-red-200">
+                <svg class="w-3.5 h-3.5 mr-1 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+                OPERACIÓN FALLIDA
+            </span>
+        </div>
+    </div>
+
+    <!-- Tarjeta Principal de Información -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Columna Izquierda: Metadatos del Evento -->
+        <div class="lg:col-span-2 space-y-6">
+
+            <!-- Ficha Técnica -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="px-5 py-4 bg-slate-50 border-b border-slate-200">
+                    <h2 class="text-sm font-semibold text-slate-800">Información del Evento</h2>
+                </div>
+                <div class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Fecha y Hora</span>
+                        <span class="font-mono text-slate-800 font-medium"
+                              th:text="${#temporals.format(evento.fecha, 'yyyy-MM-dd HH:mm:ss')}">
+                            2026-10-03 12:00:00
+                        </span>
+                    </div>
+
+                    <div>
+                        <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Módulo</span>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-semibold bg-slate-100 text-slate-800"
+                              th:text="${evento.modulo}">
+                            SEGURIDAD
+                        </span>
+                    </div>
+
+                    <div>
+                        <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Acción Auditada</span>
+                        <span class="font-mono text-xs font-bold text-slate-900" th:text="${evento.accion}">
+                            LOGIN_EXITOSO
+                        </span>
+                    </div>
+
+                    <div>
+                        <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Resultado</span>
+                        <span th:text="${evento.resultado}" class="font-semibold text-slate-800">EXITO</span>
+                    </div>
+
+                    <div>
+                        <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Entidad Afectada</span>
+                        <span th:if="${evento.entidadTipo != null}">
+                            <span class="font-medium text-slate-800" th:text="${evento.entidadTipo}"></span>
+                            <span th:if="${evento.entidadId != null}" th:text="' (ID: ' + ${evento.entidadId} + ')'"></span>
+                        </span>
+                        <span th:unless="${evento.entidadTipo != null}" class="text-slate-400">Sin entidad específica</span>
+                    </div>
+
+                    <div>
+                        <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Dirección IP</span>
+                        <span class="font-mono text-slate-800" th:text="${evento.direccionIp != null ? evento.direccionIp : 'No disponible'}">
+                            127.0.0.1
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Descripción y Contexto -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="px-5 py-4 bg-slate-50 border-b border-slate-200">
+                    <h2 class="text-sm font-semibold text-slate-800">Descripción</h2>
+                </div>
+                <div class="p-5">
+                    <p class="text-sm text-slate-800 leading-relaxed font-medium" th:text="${evento.descripcion}">
+                        Descripción humana del evento registrado.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Detalles Adicionales Seguros -->
+            <div th:if="${evento.detalles != null and !evento.detalles.isBlank()}"
+                 class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="px-5 py-4 bg-slate-50 border-b border-slate-200">
+                    <h2 class="text-sm font-semibold text-slate-800">Detalles Adicionales</h2>
+                </div>
+                <div class="p-5">
+                    <pre class="text-xs font-mono bg-slate-50 p-4 rounded-lg border border-slate-200 text-slate-700 whitespace-pre-wrap break-all"
+                         th:text="${evento.detalles}">Detalles contextuales de la operación</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna Derecha: Actor / Usuario Histórico -->
+        <div class="space-y-6">
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="px-5 py-4 bg-slate-50 border-b border-slate-200">
+                    <h2 class="text-sm font-semibold text-slate-800">Actor del Evento</h2>
+                </div>
+                <div class="p-5 space-y-4 text-sm">
+                    <div>
+                        <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Username Histórico</span>
+                        <span class="font-mono font-semibold text-slate-900"
+                              th:text="${evento.username != null ? evento.username : 'ANÓNIMO / NO AUTENTICADO'}">
+                            admin
+                        </span>
+                    </div>
+
+                    <div>
+                        <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">ID de Usuario</span>
+                        <span class="text-slate-800"
+                              th:text="${evento.usuarioId != null ? '#' + evento.usuarioId : 'Sin ID vinculado'}">
+                            #1
+                        </span>
+                    </div>
+
+                    <div class="pt-3 border-t border-slate-100">
+                        <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-800">
+                            <p class="font-semibold">Inmutabilidad de Registro</p>
+                            <p class="mt-1">
+                                Los eventos de auditoría no pueden ser alterados ni eliminados. Este registro preserva el estado histórico exacto al momento de su captura.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

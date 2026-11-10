@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layouts/main :: layout(#{matricula.titulo.listado}, 'matriculas', ~{::#matriculas-list-content})}">
+<head>
+    <title th:text="#{matricula.titulo.listado}">Padrón de Matrículas</title>
+</head>
+<body>
+<div id="matriculas-list-content" class="space-y-6">
+
+    <!-- Encabezado con Botón de Nueva Matrícula -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900 tracking-tight" th:text="#{matricula.titulo.listado}">
+                Padrón de Matrículas
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+                Registro y control del año lectivo, asignación de grados y secciones para estudiantes.
+            </p>
+        </div>
+        <div sec:authorize="hasAuthority('MATRICULA_CREAR')">
+            <a th:href="@{/matriculas/nueva}"
+               class="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-semibold rounded-lg text-white bg-emerald-700 hover:bg-emerald-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition duration-150">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                <span>Nueva Matrícula</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Barra de Filtros y Búsqueda -->
+    <div class="bg-white p-4 sm:p-5 rounded-xl border border-slate-200 shadow-sm">
+        <form th:action="@{/matriculas}" method="get" class="grid grid-cols-1 sm:grid-cols-12 gap-3.5 items-end">
+            <!-- Búsqueda General -->
+            <div class="sm:col-span-12 lg:col-span-4">
+                <label for="q" class="block text-xs font-semibold text-slate-700 mb-1">
+                    Buscar por código, DNI o estudiante
+                </label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </span>
+                    <input type="text"
+                           id="q"
+                           name="q"
+                           th:value="${q}"
+                           placeholder="Ej. MAT-2026-001 o 77889900"
+                           class="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 placeholder-slate-400">
+                </div>
+            </div>
+
+            <!-- Filtro Año Escolar -->
+            <div class="sm:col-span-3 lg:col-span-2">
+                <label for="anioEscolarId" class="block text-xs font-semibold text-slate-700 mb-1">
+                    Año Escolar
+                </label>
+                <select id="anioEscolarId"
+                        name="anioEscolarId"
+                        class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                    <option value="">Todos los años</option>
+                    <option th:each="a : ${aniosEscolares}"
+                            th:value="${a.id}"
+                            th:text="${a.anio + (a.activo ? ' (Activo)' : '')}"
+                            th:selected="${a.id == anioEscolarId}">2026</option>
+                </select>
+            </div>
+
+            <!-- Filtro Grado -->
+            <div class="sm:col-span-3 lg:col-span-2">
+                <label for="gradoId" class="block text-xs font-semibold text-slate-700 mb-1">
+                    Grado
+                </label>
+                <select id="gradoId"
+                        name="gradoId"
+                        class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                    <option value="">Todos los grados</option>
+                    <option th:each="g : ${grados}"
+                            th:value="${g.id}"
+                            th:text="${g.nombre + ' (' + g.nivel + ')'}"
+                            th:selected="${g.id == gradoId}">1° Secundaria</option>
+                </select>
+            </div>
+
+            <!-- Filtro Estado -->
+            <div class="sm:col-span-3 lg:col-span-2">
+                <label for="estado" class="block text-xs font-semibold text-slate-700 mb-1">
+                    Estado
+                </label>
+                <select id="estado"
+                        name="estado"
+                        class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                    <option value="">Todos los estados</option>
+                    <option th:each="est : ${estados}"
+                            th:value="${est}"
+                            th:text="${est}"
+                            th:selected="${est == estado}">MATRICULADO</option>
+                </select>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="sm:col-span-3 lg:col-span-2 flex items-center space-x-2">
+                <button type="submit"
+                        class="w-full inline-flex items-center justify-center px-3.5 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-slate-800 hover:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-500 transition duration-150">
+                    Filtrar
+                </button>
+                <a th:href="@{/matriculas}"
+                   title="Limpiar filtros"
+                   class="inline-flex items-center justify-center p-2 border border-slate-300 text-slate-600 rounded-lg hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-400 transition duration-150">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tabla de Matrículas -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-slate-200 text-left text-sm">
+                <thead class="bg-slate-50 text-slate-600 font-semibold text-xs uppercase tracking-wider">
+                    <tr>
+                        <th scope="col" class="py-3 px-4">Código</th>
+                        <th scope="col" class="py-3 px-4">Documento</th>
+                        <th scope="col" class="py-3 px-4">Estudiante</th>
+                        <th scope="col" class="py-3 px-4">Año Lectivo</th>
+                        <th scope="col" class="py-3 px-4">Grado y Sección</th>
+                        <th scope="col" class="py-3 px-4">Fecha</th>
+                        <th scope="col" class="py-3 px-4 text-center">Estado</th>
+                        <th scope="col" class="py-3 px-4 text-right">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-slate-700">
+                    <!-- Registro vacío -->
+                    <tr th:if="${matriculas.empty}">
+                        <td colspan="8" class="py-12 text-center text-slate-500">
+                            <div class="flex flex-col items-center justify-center space-y-2">
+                                <svg class="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                                <span class="font-medium text-slate-600">No se encontraron matrículas registradas</span>
+                                <span class="text-xs text-slate-400">Intente modificar los filtros o registre una nueva matrícula</span>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Filas de datos -->
+                    <tr th:each="m : ${matriculas.content}" class="hover:bg-slate-50/80 transition-colors duration-100">
+                        <td class="py-3 px-4 font-mono font-bold text-slate-900 whitespace-nowrap">
+                            <a th:href="@{/matriculas/{id}(id=${m.id})}"
+                               class="hover:text-emerald-700 hover:underline"
+                               th:text="${m.codigoMatricula}">
+                                MAT-2026-001
+                            </a>
+                        </td>
+                        <td class="py-3 px-4 font-mono text-xs text-slate-600 whitespace-nowrap"
+                            th:text="${m.estudianteNumeroDocumento}">
+                            77889900
+                        </td>
+                        <td class="py-3 px-4 font-medium text-slate-900 whitespace-nowrap">
+                            <span th:text="${m.estudianteNombreCompleto}">
+                                Mendoza Flores, Carlos Eduardo
+                            </span>
+                        </td>
+                        <td class="py-3 px-4 whitespace-nowrap font-semibold text-xs text-slate-700">
+                            <span class="px-2 py-0.5 rounded bg-slate-100" th:text="${m.anioEscolarAnio}">2026</span>
+                        </td>
+                        <td class="py-3 px-4 whitespace-nowrap text-xs text-slate-700">
+                            <span class="font-medium text-slate-900" th:text="${m.gradoNombre}">1° Grado</span> -
+                            <span class="text-emerald-700 font-bold" th:text="${m.seccionNombre}">Sección A</span>
+                        </td>
+                        <td class="py-3 px-4 whitespace-nowrap text-xs text-slate-600"
+                            th:text="${#temporals.format(m.fechaMatricula, 'dd/MM/yyyy')}">
+                            01/03/2026
+                        </td>
+                        <td class="py-3 px-4 text-center whitespace-nowrap">
+                            <span th:if="${m.estado.name() == 'MATRICULADO'}"
+                                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 mr-1.5"></span> MATRICULADO
+                            </span>
+                            <span th:if="${m.estado.name() == 'RETIRADO'}"
+                                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+                                <span class="w-1.5 h-1.5 rounded-full bg-amber-600 mr-1.5"></span> RETIRADO
+                            </span>
+                            <span th:if="${m.estado.name() == 'TRASLADADO'}"
+                                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">
+                                <span class="w-1.5 h-1.5 rounded-full bg-blue-600 mr-1.5"></span> TRASLADADO
+                            </span>
+                            <span th:if="${m.estado.name() == 'ANULADA'}"
+                                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800 border border-red-200">
+                                <span class="w-1.5 h-1.5 rounded-full bg-red-600 mr-1.5"></span> ANULADA
+                            </span>
+                        </td>
+                        <td class="py-3 px-4 text-right whitespace-nowrap space-x-1.5">
+                            <!-- Ver Ficha -->
+                            <a th:href="@{/matriculas/{id}(id=${m.id})}"
+                               title="Ver ficha"
+                               aria-label="Ver detalle de matrícula"
+                               class="inline-flex items-center p-1.5 text-slate-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                </svg>
+                            </a>
+
+                            <!-- Editar -->
+                            <a sec:authorize="hasAuthority('MATRICULA_EDITAR')"
+                               th:href="@{/matriculas/{id}/editar(id=${m.id})}"
+                               title="Editar matrícula"
+                               aria-label="Editar matrícula"
+                               class="inline-flex items-center p-1.5 text-slate-600 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                </svg>
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginador -->
+        <div th:if="${matriculas.totalPages > 0}"
+             class="bg-slate-50 px-4 py-3 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
+            <div>
+                Mostrando página <span class="font-semibold text-slate-800" th:text="${matriculas.number + 1}">1</span>
+                de <span class="font-semibold text-slate-800" th:text="${matriculas.totalPages}">1</span>
+                (<span class="font-semibold text-slate-800" th:text="${matriculas.totalElements}">0</span> matrículas en total)
+            </div>
+
+            <!-- Navegación de páginas -->
+            <div class="flex items-center space-x-1.5">
+                <a th:if="${matriculas.hasPrevious()}"
+                   th:href="@{/matriculas(page=${matriculas.number - 1}, size=${size}, q=${q}, anioEscolarId=${anioEscolarId}, gradoId=${gradoId}, seccionId=${seccionId}, estado=${estado})}"
+                   class="inline-flex items-center px-3 py-1.5 border border-slate-300 rounded-lg text-slate-700 hover:bg-white bg-slate-100 font-medium transition duration-150">
+                    &larr; Anterior
+                </a>
+                <span th:unless="${matriculas.hasPrevious()}"
+                      class="inline-flex items-center px-3 py-1.5 border border-slate-200 rounded-lg text-slate-400 bg-slate-50 cursor-not-allowed">
+                    &larr; Anterior
+                </span>
+
+                <a th:if="${matriculas.hasNext()}"
+                   th:href="@{/matriculas(page=${matriculas.number + 1}, size=${size}, q=${q}, anioEscolarId=${anioEscolarId}, gradoId=${gradoId}, seccionId=${seccionId}, estado=${estado})}"
+                   class="inline-flex items-center px-3 py-1.5 border border-slate-300 rounded-lg text-slate-700 hover:bg-white bg-slate-100 font-medium transition duration-150">
+                    Siguiente &rarr;
+                </a>
+                <span th:unless="${matriculas.hasNext()}"
+                      class="inline-flex items-center px-3 py-1.5 border border-slate-200 rounded-lg text-slate-400 bg-slate-50 cursor-not-allowed">
+                    Siguiente &rarr;
+                </span>
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

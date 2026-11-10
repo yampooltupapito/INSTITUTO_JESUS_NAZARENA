@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layouts/main :: layout(#{rol.titulo.listado}, 'roles', ~{::#roles-list-content})}">
+<head>
+    <title th:text="#{rol.titulo.listado}">Roles del Sistema</title>
+</head>
+<body>
+<div id="roles-list-content" class="space-y-6">
+
+    <!-- Encabezado -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900 tracking-tight" th:text="#{rol.titulo.listado}">
+                Roles del Sistema
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+                Perfiles institucionales y catálogo de permisos configurados en la base de datos.
+            </p>
+        </div>
+        <div>
+            <a th:href="@{/usuarios}"
+               class="inline-flex items-center justify-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-lg text-slate-700 bg-white hover:bg-slate-50 shadow-sm transition">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                </svg>
+                <span>Gestión de Usuarios</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Tabla de Roles -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-slate-200">
+                <thead class="bg-slate-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                        Código
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                        Nombre del Rol
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                        Descripción
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                        Permisos
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                        Estado
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                        Acción
+                    </th>
+                </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 bg-white">
+                <tr th:if="${#lists.isEmpty(roles)}">
+                    <td colspan="6" class="px-6 py-8 text-center text-sm text-slate-500">
+                        No se encontraron roles configurados en la base de datos.
+                    </td>
+                </tr>
+                <tr th:each="r : ${roles}" class="hover:bg-slate-50 transition duration-150">
+                    <!-- Código -->
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-800 font-mono border border-slate-200"
+                              th:text="${r.codigo}">
+                            ADMIN
+                        </span>
+                    </td>
+
+                    <!-- Nombre -->
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-900" th:text="${r.nombre}">
+                        Administrador del Sistema
+                    </td>
+
+                    <!-- Descripción -->
+                    <td class="px-6 py-4 text-xs text-slate-500 max-w-xs truncate" th:text="${r.descripcion != null ? r.descripcion : '-'}">
+                        Control total sobre el sistema
+                    </td>
+
+                    <!-- Cantidad de Permisos -->
+                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200"
+                              th:text="${r.permisos != null ? r.permisos.size() + ' asignados' : '0 asignados'}">
+                            15 asignados
+                        </span>
+                    </td>
+
+                    <!-- Estado -->
+                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                        <span th:if="${r.activo}"
+                              class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                            <span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-emerald-600"></span>
+                            Activo
+                        </span>
+                        <span th:unless="${r.activo}"
+                              class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-800 border border-rose-200">
+                            <span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-rose-600"></span>
+                            Inactivo
+                        </span>
+                    </td>
+
+                    <!-- Acción Ver -->
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-xs font-medium">
+                        <a th:href="@{/roles/{id}(id=${r.id})}"
+                           class="inline-flex items-center px-3 py-1.5 border border-slate-300 rounded-lg text-slate-700 bg-white hover:bg-slate-50 transition shadow-sm font-semibold">
+                            <svg class="w-3.5 h-3.5 mr-1 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                            <span>Ver Detalle</span>
+                        </a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

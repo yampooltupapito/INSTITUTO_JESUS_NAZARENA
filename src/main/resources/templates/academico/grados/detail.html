@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layouts/main :: layout('Detalle de Grado', 'grados', ~{::#grado-detail-content})}">
+<head>
+    <title>Detalle de Grado</title>
+</head>
+<body>
+<div id="grado-detail-content" class="max-w-4xl mx-auto space-y-6">
+
+    <!-- Encabezado con Botones de Acción -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-200">
+        <div>
+            <div class="flex items-center space-x-3">
+                <h1 class="text-2xl font-bold text-slate-900 tracking-tight" th:text="${grado.nombre}">
+                    Primer Grado
+                </h1>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-semibold"
+                      th:classappend="${grado.nivel.name() == 'INICIAL'} ? 'bg-amber-100 text-amber-800' :
+                                     (${grado.nivel.name() == 'PRIMARIA'} ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800')"
+                      th:text="${grado.nivel}">
+                    PRIMARIA
+                </span>
+                <span th:if="${grado.activo}" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
+                    Activo
+                </span>
+                <span th:unless="${grado.activo}" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">
+                    Inactivo
+                </span>
+            </div>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1">
+                Estructura académica y secciones asignadas al grado
+            </p>
+        </div>
+        <div class="flex items-center space-x-2">
+            <a sec:authorize="hasAuthority('ACADEMICO_EDITAR')"
+               th:href="@{/academico/grados/{id}/editar(id=${grado.id})}"
+               class="inline-flex items-center px-3.5 py-2 border border-slate-300 shadow-sm text-xs font-semibold rounded-lg text-slate-700 bg-white hover:bg-slate-50 transition duration-150">
+                <svg class="w-4 h-4 mr-1.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                </svg>
+                <span>Editar</span>
+            </a>
+
+            <!-- Desactivar -->
+            <form th:if="${grado.activo}"
+                  sec:authorize="hasAuthority('ACADEMICO_EDITAR')"
+                  method="post"
+                  th:action="@{/academico/grados/{id}/desactivar(id=${grado.id})}"
+                  class="inline"
+                  onsubmit="return confirm('¿Está seguro de desactivar este grado?');">
+                <button type="submit"
+                        class="inline-flex items-center px-3.5 py-2 border border-red-200 text-xs font-semibold rounded-lg text-red-700 bg-red-50 hover:bg-red-100 transition duration-150">
+                    Desactivar
+                </button>
+            </form>
+
+            <!-- Activar -->
+            <form th:unless="${grado.activo}"
+                  sec:authorize="hasAuthority('ACADEMICO_EDITAR')"
+                  method="post"
+                  th:action="@{/academico/grados/{id}/activar(id=${grado.id})}"
+                  class="inline"
+                  onsubmit="return confirm('¿Está seguro de activar este grado?');">
+                <button type="submit"
+                        class="inline-flex items-center px-3.5 py-2 border border-emerald-200 text-xs font-semibold rounded-lg text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition duration-150">
+                    Activar
+                </button>
+            </form>
+
+            <a th:href="@{/academico/grados}"
+               class="inline-flex items-center px-3.5 py-2 border border-slate-300 text-xs font-semibold rounded-lg text-slate-700 bg-white hover:bg-slate-50 transition duration-150">
+                Regresar
+            </a>
+        </div>
+    </div>
+
+    <!-- Datos del Grado y Auditoría -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="md:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
+            <h2 class="text-sm font-bold uppercase tracking-wider text-slate-700 border-b border-slate-100 pb-2">
+                Ficha del Grado
+            </h2>
+
+            <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs sm:text-sm">
+                <div>
+                    <dt class="text-xs font-medium text-slate-500 uppercase tracking-wider">Nivel</dt>
+                    <dd class="mt-1 font-semibold text-slate-800" th:text="${grado.nivel}">PRIMARIA</dd>
+                </div>
+                <div>
+                    <dt class="text-xs font-medium text-slate-500 uppercase tracking-wider">Número</dt>
+                    <dd class="mt-1 font-bold text-slate-900 text-base" th:text="${grado.numero}">1</dd>
+                </div>
+                <div class="sm:col-span-2">
+                    <dt class="text-xs font-medium text-slate-500 uppercase tracking-wider">Nombre Oficial</dt>
+                    <dd class="mt-1 font-semibold text-slate-800" th:text="${grado.nombre}">Primer Grado</dd>
+                </div>
+                <div class="sm:col-span-2">
+                    <dt class="text-xs font-medium text-slate-500 uppercase tracking-wider">Descripción</dt>
+                    <dd class="mt-1 text-slate-600" th:text="${grado.descripcion != null && !grado.descripcion.isEmpty() ? grado.descripcion : 'Sin descripción registrada.'}">
+                        -
+                    </dd>
+                </div>
+            </dl>
+        </div>
+
+        <!-- Auditoría -->
+        <div class="bg-slate-50 rounded-xl border border-slate-200 p-5 text-xs text-slate-500 space-y-3">
+            <h4 class="font-bold uppercase tracking-wider text-slate-700 text-[11px] border-b border-slate-200 pb-2">Auditoría</h4>
+            <div>
+                <span class="font-semibold text-slate-600">Fecha de Creación:</span>
+                <p class="mt-0.5 text-slate-800" th:text="${#temporals.format(grado.createdAt, 'dd/MM/yyyy HH:mm')}">-</p>
+                <p th:if="${grado.createdBy != null}" class="text-[11px] text-slate-400" th:text="'Registrado por ' + ${grado.createdBy}"></p>
+            </div>
+            <div>
+                <span class="font-semibold text-slate-600">Última Modificación:</span>
+                <p class="mt-0.5 text-slate-800" th:text="${#temporals.format(grado.updatedAt, 'dd/MM/yyyy HH:mm')}">-</p>
+                <p th:if="${grado.updatedBy != null}" class="text-[11px] text-slate-400" th:text="'Actualizado por ' + ${grado.updatedBy}"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sección de Secciones del Grado -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+            <div>
+                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-800">
+                    Secciones del Grado
+                </h3>
+                <p class="text-xs text-slate-500 mt-0.5">
+                    Aulas y grupos habilitados para este grado académico
+                </p>
+            </div>
+            <a sec:authorize="hasAuthority('ACADEMICO_CREAR')"
+               th:href="@{/academico/secciones/nueva}"
+               class="inline-flex items-center px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-semibold shadow-sm transition">
+                <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                <span>Nueva Sección</span>
+            </a>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-slate-200 text-left text-xs sm:text-sm">
+                <thead class="bg-slate-50 text-slate-600 uppercase font-semibold text-[11px] tracking-wider">
+                    <tr>
+                        <th scope="col" class="px-5 py-3">Sección</th>
+                        <th scope="col" class="px-5 py-3">Turno</th>
+                        <th scope="col" class="px-5 py-3">Capacidad</th>
+                        <th scope="col" class="px-5 py-3">Matriculados</th>
+                        <th scope="col" class="px-5 py-3">Vacantes</th>
+                        <th scope="col" class="px-5 py-3">Estado</th>
+                        <th scope="col" class="px-5 py-3 text-right">Acción</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-slate-700">
+                    <tr th:if="${#lists.isEmpty(secciones)}">
+                        <td colspan="7" class="px-5 py-6 text-center text-slate-400">
+                            No hay secciones registradas para este grado.
+                        </td>
+                    </tr>
+                    <tr th:each="sec : ${secciones}" class="hover:bg-slate-50 transition duration-150">
+                        <td class="px-5 py-3 font-bold text-slate-900" th:text="${sec.nombre}">
+                            A
+                        </td>
+                        <td class="px-5 py-3 text-slate-600">
+                            <span th:text="${sec.turno.name() == 'MANANA' ? 'MAÑANA' : sec.turno.name()}">MAÑANA</span>
+                        </td>
+                        <td class="px-5 py-3 font-semibold text-slate-800" th:text="${sec.capacidad}">
+                            30
+                        </td>
+                        <td class="px-5 py-3">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-slate-100 text-slate-800"
+                                  th:text="${sec.matriculados}">
+                                0
+                            </span>
+                        </td>
+                        <td class="px-5 py-3">
+                            <span th:if="${sec.vacantes > 0}"
+                                  class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                  th:text="${sec.vacantes + ' vacantes'}">
+                                30 vacantes
+                            </span>
+                            <span th:unless="${sec.vacantes > 0}"
+                                  class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-red-100 text-red-800">
+                                SIN VACANTES
+                            </span>
+                        </td>
+                        <td class="px-5 py-3">
+                            <span th:if="${sec.activo}" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                                Activo
+                            </span>
+                            <span th:unless="${sec.activo}" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
+                                Inactivo
+                            </span>
+                        </td>
+                        <td class="px-5 py-3 text-right">
+                            <a th:href="@{/academico/secciones/{id}(id=${sec.id})}"
+                               class="text-xs font-semibold text-emerald-700 hover:text-emerald-900">
+                                Ver Detalle &rarr;
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

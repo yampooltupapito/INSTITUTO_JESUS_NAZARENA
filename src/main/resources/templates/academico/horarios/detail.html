@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layouts/main :: layout('Detalle de Horario de Asistencia', 'horarios', ~{::#horario-detail-content})}">
+<head>
+    <title>Detalle de Horario</title>
+</head>
+<body>
+<div id="horario-detail-content" class="max-w-4xl mx-auto space-y-6">
+
+    <!-- Encabezado con Botones de Acción -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-200">
+        <div>
+            <div class="flex items-center space-x-3">
+                <h1 class="text-2xl font-bold text-slate-900 tracking-tight">
+                    Horario de Asistencia - <span th:text="${horario.anio}">2026</span>
+                </h1>
+                <span th:if="${horario.activo}" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
+                    Activo
+                </span>
+                <span th:unless="${horario.activo}" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">
+                    Inactivo
+                </span>
+            </div>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1" th:text="${horario.alcance}">
+                General
+            </p>
+        </div>
+        <div class="flex items-center space-x-2">
+            <a sec:authorize="hasAuthority('HORARIO_EDITAR')"
+               th:href="@{/academico/horarios/{id}/editar(id=${horario.id})}"
+               class="inline-flex items-center px-3.5 py-2 border border-slate-300 shadow-sm text-xs font-semibold rounded-lg text-slate-700 bg-white hover:bg-slate-50 transition duration-150">
+                <svg class="w-4 h-4 mr-1.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                </svg>
+                <span>Editar</span>
+            </a>
+
+            <!-- Desactivar -->
+            <form th:if="${horario.activo}"
+                  sec:authorize="hasAuthority('HORARIO_EDITAR')"
+                  method="post"
+                  th:action="@{/academico/horarios/{id}/desactivar(id=${horario.id})}"
+                  class="inline"
+                  onsubmit="return confirm('¿Está seguro de desactivar este horario? Las asistencias ya calculadas no se alterarán.');">
+                <button type="submit"
+                        class="inline-flex items-center px-3.5 py-2 border border-red-200 text-xs font-semibold rounded-lg text-red-700 bg-red-50 hover:bg-red-100 transition duration-150">
+                    Desactivar
+                </button>
+            </form>
+
+            <!-- Activar -->
+            <form th:unless="${horario.activo}"
+                  sec:authorize="hasAuthority('HORARIO_EDITAR')"
+                  method="post"
+                  th:action="@{/academico/horarios/{id}/activar(id=${horario.id})}"
+                  class="inline"
+                  onsubmit="return confirm('¿Está seguro de activar este horario?');">
+                <button type="submit"
+                        class="inline-flex items-center px-3.5 py-2 border border-emerald-200 text-xs font-semibold rounded-lg text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition duration-150">
+                    Activar
+                </button>
+            </form>
+
+            <a th:href="@{/academico/horarios}"
+               class="inline-flex items-center px-3.5 py-2 border border-slate-300 text-xs font-semibold rounded-lg text-slate-700 bg-white hover:bg-slate-50 transition duration-150">
+                Regresar
+            </a>
+        </div>
+    </div>
+
+    <!-- Contenido Principal -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Tarjeta de Reglas Horarias -->
+        <div class="md:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-6">
+            <div>
+                <h2 class="text-sm font-bold uppercase tracking-wider text-slate-700 border-b border-slate-100 pb-2">
+                    Configuración de Asistencia
+                </h2>
+
+                <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs sm:text-sm mt-4">
+                    <div>
+                        <dt class="text-xs font-medium text-slate-500 uppercase tracking-wider">Año Escolar</dt>
+                        <dd class="mt-1 font-bold text-slate-900" th:text="${horario.anio + ' - ' + horario.anioNombre}">2026</dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs font-medium text-slate-500 uppercase tracking-wider">Turno</dt>
+                        <dd class="mt-1">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold"
+                                  th:classappend="${horario.turno.name() == 'MANANA'} ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'"
+                                  th:text="${horario.turno.name() == 'MANANA' ? 'MAÑANA' : horario.turno.name()}">
+                                MAÑANA
+                            </span>
+                        </dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs font-medium text-slate-500 uppercase tracking-wider">Grado</dt>
+                        <dd class="mt-1 font-semibold text-slate-800" th:text="${horario.gradoNombre != null ? horario.gradoNombre : 'General (Todos los grados)'}">-</dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs font-medium text-slate-500 uppercase tracking-wider">Sección</dt>
+                        <dd class="mt-1 font-semibold text-slate-800" th:text="${horario.seccionNombre != null ? horario.seccionNombre : 'General (Todas las secciones)'}">-</dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs font-medium text-slate-500 uppercase tracking-wider">Hora de Entrada</dt>
+                        <dd class="mt-1 font-bold text-slate-900 text-base" th:text="${#temporals.format(horario.horaEntrada, 'HH:mm')}">07:45</dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs font-medium text-slate-500 uppercase tracking-wider">Tolerancia</dt>
+                        <dd class="mt-1 font-semibold text-slate-800" th:text="${horario.minutosTolerancia} + ' minutos'">10 minutos</dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs font-medium text-slate-500 uppercase tracking-wider">Hora Límite de Entrada</dt>
+                        <dd class="mt-1 font-extrabold text-emerald-700 text-base" th:text="${#temporals.format(horario.horaLimite, 'HH:mm')}">07:55</dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs font-medium text-slate-500 uppercase tracking-wider">Hora de Salida</dt>
+                        <dd class="mt-1 font-semibold text-slate-800 text-base" th:text="${#temporals.format(horario.horaSalida, 'HH:mm')}">13:30</dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs font-medium text-slate-500 uppercase tracking-wider">Vigencia Desde</dt>
+                        <dd class="mt-1 text-slate-700" th:text="${#temporals.format(horario.fechaInicio, 'dd/MM/yyyy')}">01/03/2026</dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs font-medium text-slate-500 uppercase tracking-wider">Vigencia Hasta</dt>
+                        <dd class="mt-1 text-slate-700" th:text="${#temporals.format(horario.fechaFin, 'dd/MM/yyyy')}">20/12/2026</dd>
+                    </div>
+                </dl>
+            </div>
+
+            <!-- Panel Informativo de Reglas -->
+            <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg text-xs space-y-2">
+                <h4 class="font-bold text-slate-700 uppercase tracking-wider text-[11px]">Criterio de Evaluación</h4>
+                <ul class="list-disc list-inside text-slate-600 space-y-1">
+                    <li>Ingresos <strong>hasta las <span th:text="${#temporals.format(horario.horaLimite, 'HH:mm')}">07:55</span></strong> se marcan como <span class="font-bold text-emerald-700">PRESENTE</span>.</li>
+                    <li>Ingresos <strong>posteriores a las <span th:text="${#temporals.format(horario.horaLimite, 'HH:mm')}">07:55</span></strong> se marcan como <span class="font-bold text-amber-700">TARDANZA</span>.</li>
+                    <li>Los estudiantes sin registro presencial se marcarán manualmente como <span class="font-bold text-red-700">AUSENTE</span>.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Auditoría -->
+        <div class="space-y-6">
+            <div class="bg-slate-50 rounded-xl border border-slate-200 p-5 text-xs text-slate-500 space-y-3">
+                <h4 class="font-bold uppercase tracking-wider text-slate-700 text-[11px] border-b border-slate-200 pb-2">Auditoría</h4>
+                <div>
+                    <span class="font-semibold text-slate-600">Fecha de Creación:</span>
+                    <p class="mt-0.5 text-slate-800" th:text="${#temporals.format(horario.createdAt, 'dd/MM/yyyy HH:mm')}">-</p>
+                    <p th:if="${horario.createdBy != null}" class="text-[11px] text-slate-400" th:text="'Registrado por ' + ${horario.createdBy}"></p>
+                </div>
+                <div>
+                    <span class="font-semibold text-slate-600">Última Modificación:</span>
+                    <p class="mt-0.5 text-slate-800" th:text="${#temporals.format(horario.updatedAt, 'dd/MM/yyyy HH:mm')}">-</p>
+                    <p th:if="${horario.updatedBy != null}" class="text-[11px] text-slate-400" th:text="'Actualizado por ' + ${horario.updatedBy}"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

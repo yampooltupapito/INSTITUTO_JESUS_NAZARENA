@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layouts/main :: layout(#{estudiante.titulo.listado}, 'estudiantes', ~{::#estudiantes-list-content})}">
+<head>
+    <title th:text="#{estudiante.titulo.listado}">Gestión de Estudiantes</title>
+</head>
+<body>
+<div id="estudiantes-list-content" class="space-y-6">
+
+    <!-- Encabezado de la página con botón de acción -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900 tracking-tight" th:text="#{estudiante.titulo.listado}">
+                Gestión de Estudiantes
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+                Padrón general de alumnos matriculados y registrados en la institución.
+            </p>
+        </div>
+        <div sec:authorize="hasAuthority('ESTUDIANTE_CREAR')">
+            <a th:href="@{/estudiantes/nuevo}"
+               class="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-semibold rounded-lg text-white bg-emerald-700 hover:bg-emerald-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition duration-150">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                <span>Nuevo Estudiante</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtros y Búsqueda -->
+    <div class="bg-white p-4 sm:p-5 rounded-xl border border-slate-200 shadow-sm">
+        <form th:action="@{/estudiantes}" method="get" class="grid grid-cols-1 sm:grid-cols-12 gap-3.5 items-end">
+            <!-- Campo de Búsqueda -->
+            <div class="sm:col-span-5 lg:col-span-6">
+                <label for="q" class="block text-xs font-semibold text-slate-700 mb-1">
+                    Buscar por DNI, nombres o apellidos
+                </label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </span>
+                    <input type="text"
+                           id="q"
+                           name="q"
+                           th:value="${q}"
+                           placeholder="Ej. 77889900 o Mendoza"
+                           class="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 placeholder-slate-400">
+                </div>
+            </div>
+
+            <!-- Filtro de Estado -->
+            <div class="sm:col-span-3 lg:col-span-3">
+                <label for="estado" class="block text-xs font-semibold text-slate-700 mb-1">
+                    Estado
+                </label>
+                <select id="estado"
+                        name="estado"
+                        class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                    <option value="TODOS" th:selected="${estado == 'TODOS'}">Todos los estados</option>
+                    <option value="ACTIVOS" th:selected="${estado == 'ACTIVOS'}">Solo Activos</option>
+                    <option value="INACTIVOS" th:selected="${estado == 'INACTIVOS'}">Solo Inactivos</option>
+                </select>
+            </div>
+
+            <!-- Registros por página -->
+            <div class="sm:col-span-2 lg:col-span-1">
+                <label for="size" class="block text-xs font-semibold text-slate-700 mb-1">
+                    Por pág.
+                </label>
+                <select id="size"
+                        name="size"
+                        class="w-full px-2 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                    <option value="10" th:selected="${size == 10}">10</option>
+                    <option value="25" th:selected="${size == 25}">25</option>
+                    <option value="50" th:selected="${size == 50}">50</option>
+                    <option value="100" th:selected="${size == 100}">100</option>
+                </select>
+            </div>
+
+            <!-- Botones de Acción de Filtro -->
+            <div class="sm:col-span-2 lg:col-span-2 flex items-center space-x-2">
+                <button type="submit"
+                        class="w-full inline-flex items-center justify-center px-3.5 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-slate-800 hover:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-500 transition duration-150">
+                    Buscar
+                </button>
+                <a th:href="@{/estudiantes}"
+                   title="Limpiar filtros"
+                   class="inline-flex items-center justify-center p-2 border border-slate-300 text-slate-600 rounded-lg hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-400 transition duration-150">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tabla de Estudiantes -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-slate-200 text-left text-sm">
+                <thead class="bg-slate-50 text-slate-600 font-semibold text-xs uppercase tracking-wider">
+                    <tr>
+                        <th scope="col" class="py-3 px-4">Documento</th>
+                        <th scope="col" class="py-3 px-4">Apellidos y Nombres</th>
+                        <th scope="col" class="py-3 px-4">Sexo</th>
+                        <th scope="col" class="py-3 px-4">Teléfono</th>
+                        <th scope="col" class="py-3 px-4">Correo</th>
+                        <th scope="col" class="py-3 px-4 text-center">Estado</th>
+                        <th scope="col" class="py-3 px-4 text-right">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-slate-700">
+                    <!-- Registro vacío -->
+                    <tr th:if="${estudiantes.empty}">
+                        <td colspan="7" class="py-12 text-center text-slate-500">
+                            <div class="flex flex-col items-center justify-center space-y-2">
+                                <svg class="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                </svg>
+                                <span class="font-medium text-slate-600">No se encontraron estudiantes registrados</span>
+                                <span class="text-xs text-slate-400">Intente modificar los criterios de búsqueda o registre un nuevo estudiante</span>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Filas de datos -->
+                    <tr th:each="est : ${estudiantes.content}" class="hover:bg-slate-50/80 transition-colors duration-100">
+                        <td class="py-3 px-4 font-mono font-medium text-slate-900 whitespace-nowrap">
+                            <span class="inline-block px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-xs font-semibold mr-1"
+                                  th:text="${est.tipoDocumento}">DNI</span>
+                            <span th:text="${est.numeroDocumento}">77889900</span>
+                        </td>
+                        <td class="py-3 px-4 font-medium text-slate-900 whitespace-nowrap">
+                            <a th:href="@{/estudiantes/{id}(id=${est.id})}"
+                               class="hover:text-emerald-700 hover:underline">
+                                <span th:text="${est.apellidoPaterno + ' ' + est.apellidoMaterno + ', ' + est.nombres}">
+                                    Mendoza Flores, Carlos
+                                </span>
+                            </a>
+                        </td>
+                        <td class="py-3 px-4 whitespace-nowrap text-xs text-slate-600" th:text="${est.sexo}">
+                            MASCULINO
+                        </td>
+                        <td class="py-3 px-4 whitespace-nowrap font-mono text-xs text-slate-600" th:text="${est.telefono ?: '-'}">
+                            987654321
+                        </td>
+                        <td class="py-3 px-4 whitespace-nowrap text-xs text-slate-600 truncate max-w-xs" th:text="${est.correo ?: '-'}">
+                            carlos@correo.com
+                        </td>
+                        <td class="py-3 px-4 text-center whitespace-nowrap">
+                            <span th:if="${est.activo}"
+                                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 mr-1.5"></span> Activo
+                            </span>
+                            <span th:unless="${est.activo}"
+                                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800 border border-red-200">
+                                <span class="w-1.5 h-1.5 rounded-full bg-red-600 mr-1.5"></span> Inactivo
+                            </span>
+                        </td>
+                        <td class="py-3 px-4 text-right whitespace-nowrap space-x-1.5">
+                            <!-- Ver Ficha Detalle -->
+                            <a th:href="@{/estudiantes/{id}(id=${est.id})}"
+                               title="Ver ficha"
+                               aria-label="Ver ficha del estudiante"
+                               class="inline-flex items-center p-1.5 text-slate-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                </svg>
+                            </a>
+
+                            <!-- Editar -->
+                            <a sec:authorize="hasAuthority('ESTUDIANTE_EDITAR')"
+                               th:href="@{/estudiantes/{id}/editar(id=${est.id})}"
+                               title="Editar datos"
+                               aria-label="Editar estudiante"
+                               class="inline-flex items-center p-1.5 text-slate-600 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                </svg>
+                            </a>
+
+                            <!-- Activar / Desactivar (POST con CSRF) -->
+                            <span sec:authorize="hasAuthority('ESTUDIANTE_EDITAR')" class="inline">
+                                <form th:if="${est.activo}"
+                                      th:action="@{/estudiantes/{id}/desactivar(id=${est.id})}"
+                                      method="post"
+                                      class="inline"
+                                      onsubmit="return confirm('¿Está seguro de desactivar al estudiante? No se eliminarán sus matrículas ni asistencias.');">
+                                    <button type="submit"
+                                            title="Desactivar estudiante"
+                                            aria-label="Desactivar estudiante"
+                                            class="inline-flex items-center p-1.5 text-slate-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
+                                        </svg>
+                                    </button>
+                                </form>
+                                <form th:unless="${est.activo}"
+                                      th:action="@{/estudiantes/{id}/activar(id=${est.id})}"
+                                      method="post"
+                                      class="inline"
+                                      onsubmit="return confirm('¿Desea reactivar a este estudiante?');">
+                                    <button type="submit"
+                                            title="Activar estudiante"
+                                            aria-label="Activar estudiante"
+                                            class="inline-flex items-center p-1.5 text-slate-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                    </button>
+                                </form>
+                            </span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginación -->
+        <div th:if="${estudiantes.totalPages > 0}"
+             class="bg-slate-50 px-4 py-3 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
+            <div>
+                Mostrando página <span class="font-semibold text-slate-800" th:text="${estudiantes.number + 1}">1</span>
+                de <span class="font-semibold text-slate-800" th:text="${estudiantes.totalPages}">1</span>
+                (<span class="font-semibold text-slate-800" th:text="${estudiantes.totalElements}">0</span> estudiantes en total)
+            </div>
+
+            <!-- Navegación de páginas -->
+            <div class="flex items-center space-x-1.5">
+                <!-- Anterior -->
+                <a th:if="${estudiantes.hasPrevious()}"
+                   th:href="@{/estudiantes(page=${estudiantes.number - 1}, size=${size}, q=${q}, estado=${estado})}"
+                   class="inline-flex items-center px-3 py-1.5 border border-slate-300 rounded-lg text-slate-700 hover:bg-white bg-slate-100 font-medium transition duration-150">
+                    &larr; Anterior
+                </a>
+                <span th:unless="${estudiantes.hasPrevious()}"
+                      class="inline-flex items-center px-3 py-1.5 border border-slate-200 rounded-lg text-slate-400 bg-slate-50 cursor-not-allowed">
+                    &larr; Anterior
+                </span>
+
+                <!-- Siguiente -->
+                <a th:if="${estudiantes.hasNext()}"
+                   th:href="@{/estudiantes(page=${estudiantes.number + 1}, size=${size}, q=${q}, estado=${estado})}"
+                   class="inline-flex items-center px-3 py-1.5 border border-slate-300 rounded-lg text-slate-700 hover:bg-white bg-slate-100 font-medium transition duration-150">
+                    Siguiente &rarr;
+                </a>
+                <span th:unless="${estudiantes.hasNext()}"
+                      class="inline-flex items-center px-3 py-1.5 border border-slate-200 rounded-lg text-slate-400 bg-slate-50 cursor-not-allowed">
+                    Siguiente &rarr;
+                </span>
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

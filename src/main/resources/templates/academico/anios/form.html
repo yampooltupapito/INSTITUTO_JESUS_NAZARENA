@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layouts/main :: layout(${pageTitle}, 'anios', ~{::#anio-form-content})}">
+<head>
+    <title th:text="${pageTitle}">Año Escolar</title>
+</head>
+<body>
+<div id="anio-form-content" class="max-w-2xl mx-auto space-y-6">
+
+    <!-- Encabezado -->
+    <div class="flex items-center justify-between pb-4 border-b border-slate-200">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900 tracking-tight" th:text="${pageTitle}">
+                Nuevo Año Escolar
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1">
+                Configure los datos y el periodo de vigencia del año escolar
+            </p>
+        </div>
+        <a th:href="@{/academico/anios}"
+           class="inline-flex items-center px-3 py-1.5 border border-slate-300 text-xs font-medium rounded-lg text-slate-700 bg-white hover:bg-slate-50">
+            Regresar
+        </a>
+    </div>
+
+    <!-- Formulario -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 sm:p-8">
+        <form th:action="${isEdit == true} ? @{/academico/anios/{id}(id=${anioId})} : @{/academico/anios}"
+              th:object="${anioRequest}"
+              method="post"
+              class="space-y-6">
+
+            <!-- Mensaje de error general si existe -->
+            <div th:if="${errorMessage}" class="p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs sm:text-sm">
+                <span th:text="${errorMessage}">Error</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <!-- Año -->
+                <div>
+                    <label for="anio" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                        Año Lectivo <span class="text-red-500">*</span>
+                    </label>
+                    <input type="number"
+                           id="anio"
+                           th:field="*{anio}"
+                           min="2000"
+                           max="2100"
+                           placeholder="Ej. 2026"
+                           required
+                           class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition"
+                           th:classappend="${#fields.hasErrors('anio')} ? 'border-red-500 bg-red-50' : ''">
+                    <p th:if="${#fields.hasErrors('anio')}" th:errors="*{anio}" class="text-xs text-red-600 mt-1 font-medium"></p>
+                </div>
+
+                <!-- Nombre -->
+                <div>
+                    <label for="nombre" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                        Nombre Descriptivo <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text"
+                           id="nombre"
+                           th:field="*{nombre}"
+                           placeholder="Ej. Año Escolar 2026"
+                           required
+                           maxlength="100"
+                           class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition"
+                           th:classappend="${#fields.hasErrors('nombre')} ? 'border-red-500 bg-red-50' : ''">
+                    <p th:if="${#fields.hasErrors('nombre')}" th:errors="*{nombre}" class="text-xs text-red-600 mt-1 font-medium"></p>
+                </div>
+
+                <!-- Fecha Inicio -->
+                <div>
+                    <label for="fechaInicio" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                        Fecha de Inicio <span class="text-red-500">*</span>
+                    </label>
+                    <input type="date"
+                           id="fechaInicio"
+                           th:field="*{fechaInicio}"
+                           required
+                           class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition"
+                           th:classappend="${#fields.hasErrors('fechaInicio')} ? 'border-red-500 bg-red-50' : ''">
+                    <p th:if="${#fields.hasErrors('fechaInicio')}" th:errors="*{fechaInicio}" class="text-xs text-red-600 mt-1 font-medium"></p>
+                </div>
+
+                <!-- Fecha Fin -->
+                <div>
+                    <label for="fechaFin" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                        Fecha de Fin <span class="text-red-500">*</span>
+                    </label>
+                    <input type="date"
+                           id="fechaFin"
+                           th:field="*{fechaFin}"
+                           required
+                           class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition"
+                           th:classappend="${#fields.hasErrors('fechaFin')} ? 'border-red-500 bg-red-50' : ''">
+                    <p th:if="${#fields.hasErrors('fechaFin')}" th:errors="*{fechaFin}" class="text-xs text-red-600 mt-1 font-medium"></p>
+                </div>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="flex items-center justify-end space-x-3 pt-6 border-t border-slate-100">
+                <a th:href="@{/academico/anios}"
+                   class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-medium transition duration-150">
+                    Cancelar
+                </a>
+                <button type="submit"
+                        class="px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-sm font-semibold shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition duration-150">
+                    <span th:text="${isEdit == true} ? 'Guardar Cambios' : 'Registrar Año Escolar'">Guardar</span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+</div>
+</body>
+</html>

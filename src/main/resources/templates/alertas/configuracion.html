@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layouts/main :: layout('Configuración de Alertas', 'alertas', ~{::#configuracion-content})}">
+<head>
+    <title>Configuración de Umbrales de Alerta</title>
+</head>
+<body>
+<div id="configuracion-content" class="space-y-6">
+
+    <!-- Encabezado y Retorno -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-200">
+        <div>
+            <div class="flex items-center space-x-2">
+                <a th:href="@{/alertas}"
+                   class="text-emerald-700 hover:text-emerald-800 text-xs sm:text-sm font-semibold inline-flex items-center space-x-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    <span>Volver a Alertas</span>
+                </a>
+            </div>
+            <h1 class="text-2xl font-bold text-slate-900 tracking-tight mt-1 flex items-center space-x-3">
+                <svg class="w-7 h-7 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+                <span>Configuración de Umbrales de Alertas</span>
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1">
+                Configure los umbrales mínimos de ausencias y tardanzas para la detección automática de alertas escolares.
+            </p>
+        </div>
+    </div>
+
+    <!-- Mensajes Flash -->
+    <div th:if="${successMessage}" class="p-4 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-center space-x-2">
+        <svg class="w-5 h-5 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+        <span th:text="${successMessage}">Configuración actualizada correctamente.</span>
+    </div>
+    <div th:if="${errorMessage}" class="p-4 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-center space-x-2">
+        <svg class="w-5 h-5 text-rose-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <span th:text="${errorMessage}">Ha ocurrido un error.</span>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Columna Izquierda: Umbrales Activos Actuales -->
+        <div class="lg:col-span-2 space-y-4">
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+                    <div>
+                        <h2 class="text-base font-bold text-slate-900">Umbrales Activos del Sistema</h2>
+                        <p class="text-xs text-slate-500">Reglas vigentes para la detección de situaciones de riesgo de asistencia.</p>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-slate-600">
+                        <thead class="bg-slate-50 text-xs uppercase font-bold text-slate-600 border-b border-slate-200">
+                        <tr>
+                            <th class="px-6 py-3">Tipo de Alerta</th>
+                            <th class="px-6 py-3 text-center">Umbral Mínimo</th>
+                            <th class="px-6 py-3 text-center">Estado</th>
+                            <th class="px-6 py-3">Descripción de Regla</th>
+                        </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                        <tr th:each="cfg : ${configuraciones}" class="hover:bg-slate-50/80 transition-colors">
+                            <td class="px-6 py-4 font-semibold text-slate-800">
+                                <span th:text="${cfg.tipoDescripcion}">Ausencias Consecutivas</span>
+                                <div class="text-xs text-slate-400 font-mono mt-0.5" th:text="${cfg.tipo.name()}">AUSENCIAS_CONSECUTIVAS</div>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                    <span th:text="${cfg.umbral}">3</span>&nbsp;días
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <span th:if="${cfg.activo}" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
+                                    Activo
+                                </span>
+                                <span th:unless="${cfg.activo}" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">
+                                    Inactivo
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-xs text-slate-500">
+                                <span th:if="${cfg.tipo.name() == 'AUSENCIAS_CONSECUTIVAS'}">
+                                    Genera alerta cuando un estudiante registra faltas continuas en días estrictamente lectivos.
+                                </span>
+                                <span th:if="${cfg.tipo.name() == 'AUSENCIAS_ACUMULADAS'}">
+                                    Genera alerta al alcanzar la cantidad total de ausencias injustificadas en el año escolar vigente.
+                                </span>
+                                <span th:if="${cfg.tipo.name() == 'TARDANZAS_ACUMULADAS'}">
+                                    Genera alerta al acumular la cantidad establecida de tardanzas durante el año escolar vigente.
+                                </span>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(configuraciones)}">
+                            <td colspan="4" class="px-6 py-8 text-center text-slate-400 text-sm">
+                                No se encontraron configuraciones registradas.
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Recalcular Alertas Info Card -->
+            <div class="bg-amber-50 border border-amber-200 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="space-y-1">
+                    <h3 class="text-sm font-bold text-amber-900 flex items-center space-x-2">
+                        <svg class="w-4 h-4 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span>Recálculo General de Alertas</span>
+                    </h3>
+                    <p class="text-xs text-amber-800">
+                        Si modifica un umbral o desea forzar la evaluación completa de todas las matrículas activas del año lectivo:
+                    </p>
+                </div>
+                <form th:action="@{/alertas/recalcular}" method="post" class="flex-shrink-0"
+                      sec:authorize="hasAnyAuthority('ALERTA_CONFIGURAR', 'ALERTA_REVISAR')">
+                    <button type="submit"
+                            class="inline-flex items-center px-4 py-2 border border-amber-400 text-xs font-semibold rounded-lg text-amber-900 bg-amber-100 hover:bg-amber-200 transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        <span>Recalcular Todas</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Columna Derecha: Formulario de Modificación de Umbral -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4"
+             sec:authorize="hasAuthority('ALERTA_CONFIGURAR')">
+            <h2 class="text-base font-bold text-slate-900 pb-2 border-b border-slate-100 flex items-center space-x-2">
+                <svg class="w-5 h-5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                </svg>
+                <span>Modificar Umbral</span>
+            </h2>
+
+            <form th:action="@{/alertas/configuracion}" th:object="${configuracionRequest}" method="post" class="space-y-4">
+
+                <!-- Campo Tipo de Alerta -->
+                <div>
+                    <label for="tipo" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                        Tipo de Alerta <span class="text-rose-500">*</span>
+                    </label>
+                    <select id="tipo" th:field="*{tipo}"
+                            class="w-full text-sm border-slate-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500">
+                        <option value="">-- Seleccionar Tipo --</option>
+                        <option th:each="t : ${tiposAlerta}"
+                                th:value="${t}"
+                                th:text="${t.descripcion}">Tipo Alerta</option>
+                    </select>
+                    <p th:if="${#fields.hasErrors('tipo')}" th:errors="*{tipo}" class="mt-1 text-xs text-rose-600 font-medium"></p>
+                </div>
+
+                <!-- Campo Umbral Mínimo -->
+                <div>
+                    <label for="umbral" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                        Nuevo Umbral (Días / Ocurrencias) <span class="text-rose-500">*</span>
+                    </label>
+                    <input type="number" id="umbral" th:field="*{umbral}" min="1" max="100"
+                           class="w-full text-sm border-slate-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500"
+                           placeholder="Ej. 3">
+                    <p th:if="${#fields.hasErrors('umbral')}" th:errors="*{umbral}" class="mt-1 text-xs text-rose-600 font-medium"></p>
+                    <p class="mt-1 text-xs text-slate-400">Debe ser un número entero mayor a cero.</p>
+                </div>
+
+                <!-- Botón Guardar -->
+                <div class="pt-2">
+                    <button type="submit"
+                            class="w-full inline-flex justify-center items-center px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <span>Guardar Umbral</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layouts/main :: layout(#{matricula.titulo.detalle}, 'matriculas', ~{::#matricula-detail-content})}">
+<head>
+    <title th:text="#{matricula.titulo.detalle}">Detalle de Matrícula</title>
+</head>
+<body>
+<div id="matricula-detail-content" class="max-w-4xl mx-auto space-y-6">
+
+    <!-- Encabezado con Migas de Pan y Acciones -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-3 border-b border-slate-200">
+        <div>
+            <nav class="flex text-xs text-slate-500 mb-1" aria-label="Breadcrumb">
+                <a th:href="@{/matriculas}" class="hover:text-emerald-700">Matrículas</a>
+                <span class="mx-2 text-slate-400">/</span>
+                <span class="text-slate-800 font-semibold" th:text="${matricula.codigoMatricula}">MAT-2026-001</span>
+            </nav>
+            <h1 class="text-2xl font-bold text-slate-900 tracking-tight flex items-center space-x-3">
+                <span th:text="${matricula.codigoMatricula}">MAT-2026-001</span>
+                <!-- Badge de Estado -->
+                <span th:if="${matricula.estado.name() == 'MATRICULADO'}"
+                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 mr-1.5"></span>
+                    <span th:text="${matricula.estado}">MATRICULADO</span>
+                </span>
+                <span th:if="${matricula.estado.name() == 'TRASLADADO'}"
+                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-100 text-sky-800 border border-sky-200">
+                    <span class="w-1.5 h-1.5 rounded-full bg-sky-600 mr-1.5"></span>
+                    <span th:text="${matricula.estado}">TRASLADADO</span>
+                </span>
+                <span th:if="${matricula.estado.name() == 'RETIRADO'}"
+                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-600 mr-1.5"></span>
+                    <span th:text="${matricula.estado}">RETIRADO</span>
+                </span>
+                <span th:if="${matricula.estado.name() == 'ANULADO'}"
+                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800 border border-red-200">
+                    <span class="w-1.5 h-1.5 rounded-full bg-red-600 mr-1.5"></span>
+                    <span th:text="${matricula.estado}">ANULADO</span>
+                </span>
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+                ID del Registro: <span class="font-mono font-medium text-slate-700" th:text="${matricula.id}">1</span>
+            </p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+            <a th:href="@{/matriculas}"
+               class="inline-flex items-center px-3.5 py-2 border border-slate-300 text-xs sm:text-sm font-medium rounded-lg text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-400 transition duration-150">
+                &larr; Volver
+            </a>
+
+            <!-- Botón Editar -->
+            <a sec:authorize="hasAuthority('MATRICULA_EDITAR')"
+               th:href="@{/matriculas/{id}/editar(id=${matricula.id})}"
+               class="inline-flex items-center px-4 py-2 border border-transparent text-xs sm:text-sm font-semibold rounded-lg text-white bg-amber-600 hover:bg-amber-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition duration-150">
+                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                </svg>
+                <span>Editar Matrícula</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Mensajes Flash -->
+    <div th:if="${successMessage}"
+         class="p-4 bg-emerald-50 border-l-4 border-emerald-500 rounded-r-lg shadow-sm">
+        <div class="flex items-center">
+            <svg class="w-5 h-5 text-emerald-500 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            <p class="text-sm font-medium text-emerald-800" th:text="${successMessage}">Operación exitosa</p>
+        </div>
+    </div>
+
+    <!-- Tarjetas de Información -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- Tarjeta 1: Información del Estudiante -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
+            <h2 class="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2 flex items-center space-x-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-600 inline-block"></span>
+                <span>Datos del Estudiante</span>
+            </h2>
+            <dl class="space-y-3 text-sm">
+                <div>
+                    <dt class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Estudiante</dt>
+                    <dd class="font-medium text-slate-900 mt-0.5" th:text="${matricula.estudianteNombreCompleto}">
+                        Juan Pérez Quispe
+                    </dd>
+                </div>
+                <div>
+                    <dt class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Documento de Identidad</dt>
+                    <dd class="font-mono text-slate-800 mt-0.5" th:text="${matricula.estudianteNumeroDocumento}">
+                        12345678
+                    </dd>
+                </div>
+                <div>
+                    <dt class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Perfil en Sistema</dt>
+                    <dd class="mt-0.5">
+                        <a th:href="@{/estudiantes/{id}(id=${matricula.personaEstudianteId})}"
+                           class="text-xs font-semibold text-emerald-700 hover:text-emerald-900 inline-flex items-center">
+                            <span>Ver Ficha Personal del Estudiante &rarr;</span>
+                        </a>
+                    </dd>
+                </div>
+            </dl>
+        </div>
+
+        <!-- Tarjeta 2: Asignación Académica -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
+            <h2 class="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2 flex items-center space-x-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-600 inline-block"></span>
+                <span>Asignación Académica</span>
+            </h2>
+            <dl class="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                    <dt class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Año Escolar</dt>
+                    <dd class="font-semibold text-slate-800 mt-0.5" th:text="${matricula.anioEscolarAnio}">2026</dd>
+                </div>
+                <div>
+                    <dt class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Grado</dt>
+                    <dd class="font-medium text-slate-800 mt-0.5" th:text="${matricula.gradoNombre}">1° Secundaria</dd>
+                </div>
+                <div>
+                    <dt class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Sección</dt>
+                    <dd class="font-medium text-slate-800 mt-0.5" th:text="${matricula.seccionNombre}">Sección A</dd>
+                </div>
+                <div>
+                    <dt class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Turno</dt>
+                    <dd class="font-medium text-slate-800 mt-0.5" th:text="${matricula.seccionTurno != null ? matricula.seccionTurno : '—'}">MAÑANA</dd>
+                </div>
+                <div class="col-span-2">
+                    <dt class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Fecha de Matrícula</dt>
+                    <dd class="font-medium text-slate-800 mt-0.5"
+                        th:text="${#temporals.format(matricula.fechaMatricula, 'dd/MM/yyyy')}">
+                        01/03/2026
+                    </dd>
+                </div>
+            </dl>
+        </div>
+
+        <!-- Tarjeta 3: Observaciones -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4 md:col-span-2">
+            <h2 class="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2 flex items-center space-x-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-600 inline-block"></span>
+                <span>Observaciones del Registro</span>
+            </h2>
+            <p class="text-sm text-slate-700 bg-slate-50 p-4 rounded-lg border border-slate-100 whitespace-pre-wrap"
+               th:text="${matricula.observaciones != null && !matricula.observaciones.isEmpty() ? matricula.observaciones : 'Sin observaciones registradas.'}">
+                Sin observaciones registradas.
+            </p>
+        </div>
+
+        <!-- Tarjeta 4: Gestión de Estado (Acción rápida con POST y CSRF) -->
+        <div sec:authorize="hasAuthority('MATRICULA_EDITAR')"
+             class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4 md:col-span-2">
+            <h2 class="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2 flex items-center space-x-2">
+                <span class="w-2 h-2 rounded-full bg-amber-500 inline-block"></span>
+                <span>Actualización Rápida de Estado</span>
+            </h2>
+            <form th:action="@{/matriculas/{id}/estado(id=${matricula.id})}"
+                  method="post"
+                  class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <div class="w-full sm:w-64">
+                    <label for="nuevoEstado" class="sr-only">Seleccionar nuevo estado</label>
+                    <select id="nuevoEstado"
+                            name="estado"
+                            class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-500">
+                        <option th:each="est : ${estados}"
+                                th:value="${est}"
+                                th:text="${est}"
+                                th:selected="${est == matricula.estado}">MATRICULADO</option>
+                    </select>
+                </div>
+                <button type="submit"
+                        onclick="return confirm('¿Confirma que desea cambiar el estado de esta matrícula?');"
+                        class="px-4 py-2 border border-transparent rounded-lg text-xs sm:text-sm font-semibold text-white bg-amber-600 hover:bg-amber-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition duration-150">
+                    Cambiar Estado
+                </button>
+            </form>
+        </div>
+
+        <!-- Tarjeta 5: Trazabilidad y Auditoría -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4 md:col-span-2">
+            <h2 class="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2 flex items-center space-x-2">
+                <span class="w-2 h-2 rounded-full bg-slate-400 inline-block"></span>
+                <span>Trazabilidad y Auditoría</span>
+            </h2>
+            <dl class="grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs">
+                <div>
+                    <dt class="font-semibold text-slate-500 uppercase tracking-wider">Fecha Creación</dt>
+                    <dd class="text-slate-700 mt-0.5"
+                        th:text="${matricula.createdAt != null ? #temporals.format(matricula.createdAt, 'dd/MM/yyyy HH:mm:ss') : '—'}">
+                        01/03/2026 10:00:00
+                    </dd>
+                </div>
+                <div>
+                    <dt class="font-semibold text-slate-500 uppercase tracking-wider">Creado Por</dt>
+                    <dd class="font-mono text-slate-700 mt-0.5"
+                        th:text="${matricula.createdBy != null ? matricula.createdBy : '—'}">
+                        admin
+                    </dd>
+                </div>
+                <div>
+                    <dt class="font-semibold text-slate-500 uppercase tracking-wider">Última Modificación</dt>
+                    <dd class="text-slate-700 mt-0.5"
+                        th:text="${matricula.updatedAt != null ? #temporals.format(matricula.updatedAt, 'dd/MM/yyyy HH:mm:ss') : '—'}">
+                        01/03/2026 12:00:00
+                    </dd>
+                </div>
+                <div>
+                    <dt class="font-semibold text-slate-500 uppercase tracking-wider">Modificado Por</dt>
+                    <dd class="font-mono text-slate-700 mt-0.5"
+                        th:text="${matricula.updatedBy != null ? matricula.updatedBy : '—'}">
+                        admin
+                    </dd>
+                </div>
+            </dl>
+        </div>
+    </div>
+</div>
+</body>
+</html>
